@@ -1905,6 +1905,7 @@
     let devices = [];
     let deviceLocations = {};
     let currentGPSData = {};
+    let _allGPSRefreshLock = false;
 
     // ═══ BROWSER / HLS CAPABILITY CHECK ═══════════════════════════
 
@@ -2232,20 +2233,33 @@
     }
 
     async function loadAllGPS() {
+      if (_allGPSRefreshLock) return;
+      if (!devices.length) return;
+      _allGPSRefreshLock = true;
+      try {
       const promises = devices.map(async d => {
         const dsn = d.deviceSn || d.imei || '';
         if (!dsn) return;
         const r = await api(`/lingdu-app/api/location/last-location?deviceSn=${dsn}`);
         if (r?.data?.latitude && r?.data?.longitude) {
+          const prev = deviceLocations[dsn] || {};
           deviceLocations[dsn] = {
-            lat: r.data.latitude, lng: r.data.longitude,
+            ...prev,
+            lat: r.data.latitude,
+            lng: r.data.longitude,
             name: d.carName || d.deviceName || ('Kendaraan ' + dsn.slice(-6)),
-            speed: r.data.speed || 0
+            speed: r.data.speed || 0,
+            onlineState: Number(r.data.onlineState ?? prev.onlineState ?? 0)
           };
         }
       });
       for (let i = 0; i < promises.length; i += 4) await Promise.all(promises.slice(i, i + 4));
       rebuildAllMarkers();
+      // Update status lights (online/sleep/offline) after onlineState is available
+      renderDevices();
+      } finally {
+        _allGPSRefreshLock = false;
+      }
     }
 
     function renderDevices() {
@@ -2258,7 +2272,11 @@
         const dsn = d.deviceSn || d.imei || '';
         const name = d.carName || d.deviceName || d.vehicleName || ('Kamera ' + dsn.slice(-6));
         const model = d.deviceModel || d.model || '--';
-        const st = Number(d.onlineState);
+        const st = Number(
+          d.onlineState ??
+          deviceLocations[dsn]?.onlineState ??
+          (d.mqttState === 1 ? 1 : 0)
+        );
         const on = st === 1;
         const sleep = st === 2;
         const sc = on ? 'status-online' : sleep ? 'status-sleep' : 'status-offline';
@@ -2339,7 +2357,16 @@
       const d = r.data;
       lat = d.latitude; lng = d.longitude;
       currentGPSData = { ...d, carName: devices.find(dv => (dv.deviceSn || dv.imei) === sn)?.carName };
-      if (sn) deviceLocations[sn] = { ...(deviceLocations[sn] || {}), lat: d.latitude, lng: d.longitude, speed: d.speed || 0 };
+      if (sn) {
+        const prev = deviceLocations[sn] || {};
+        deviceLocations[sn] = {
+          ...prev,
+          lat: d.latitude,
+          lng: d.longitude,
+          speed: d.speed || 0,
+          onlineState: Number(d.onlineState ?? prev.onlineState ?? 0)
+        };
+      }
       document.getElementById('gpsLat').textContent = d.latitude?.toFixed(6) ?? '--';
       document.getElementById('gpsLng').textContent = d.longitude?.toFixed(6) ?? '--';
       document.getElementById('gpsAlt').textContent = (d.altitude || 0) + ' m';
@@ -2854,6 +2881,7 @@
 
       setInterval(loadGPS, 30000);
       setInterval(loadEvents, 60000);
+      setInterval(loadAllGPS, 60000);
       setInterval(loadDevices, 120000);
       setInterval(() => checkAuth(), 300000);
     }
