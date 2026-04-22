@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aldzama</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <!-- HLS.js: multi-CDN fallback -->
+  <script>
+    window._hlsLoaded = false;
+    window._hlsLoadError = false;
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"
+    onload="window._hlsLoaded=true;console.log('[HLS] Loaded from jsdelivr')" onerror="loadHLSFallback()"></script>
+  <script>
+    function loadHLSFallback() {
+      console.warn('[HLS] jsdelivr gagal, mencoba unpkg...');
+      var s = document.createElement('script');
+      s.src = 'https://unpkg.com/hls.js@1.5.13/dist/hls.min.js';
+      s.onload = function () { window._hlsLoaded = true; console.log('[HLS] Loaded from unpkg'); };
+      s.onerror = function () {
+        console.error('[HLS] Semua CDN gagal!');
+        window._hlsLoadError = true;
+      };
+      document.head.appendChild(s);
+    }
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --surface: #fff;
+      --surface2: #f8f9fb;
+      --border: #e4e7ec;
+      --primary: #1d6fe8;
+      --primary-light: #e8f0fd;
+      --primary-dark: #1558c0;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --text: #111827;
+      --text2: #374151;
+      --text3: #6b7280;
+      --text4: #9ca3af;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, .08);
+      --shadow: 0 4px 16px rgba(0, 0, 0, .08);
+      --shadow-lg: 0 10px 40px rgba(0, 0, 0, .1);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1d6fe8, #0ea5e9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(29, 111, 232, .35);
+      flex-shrink: 0;
+    }
+
+    .logo-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -.3px;
+    }
+
+    .logo-name span {
+      color: var(--primary);
+    }
+
+    .divider-v {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .page-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-green {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .badge-blue {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .badge-dot-green {
+      background: var(--success);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    .clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text3);
+      background: var(--surface2);
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr 300px;
+      gap: 16px;
+      padding: 16px;
+      min-height: 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .card-title-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .icon-blue {
+      background: var(--primary-light);
+    }
+
+    .icon-green {
+      background: var(--success-light);
+    }
+
+    .icon-orange {
+      background: var(--warning-light);
+    }
+
+    .card-body {
+      padding: 12px;
+    }
+
+    .count-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .left-panel::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .left-panel::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .vehicle-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all .15s;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      min-width: 240px;
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+
+    .vehicle-item:hover {
+      background: var(--surface);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .vehicle-item.active {
+      background: var(--primary-light);
+      border-color: #93bbfb;
+    }
+
+    .vehicle-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .vehicle-item.active .vehicle-avatar {
+      background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+    }
+
+    .vehicle-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .vehicle-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .vehicle-meta {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .vehicle-item.active .vehicle-name {
+      color: var(--primary-dark);
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-online {
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, .2);
+      animation: pulse-status 2s infinite;
+    }
+
+    @keyframes pulse-status {
+      0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    }
+
+    .status-offline {
+      background: var(--text4);
+    }
+
+    .status-sleep {
+      background: var(--warning);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, .2);
+    }
+
+    .refresh-btn {
+      width: 100%;
+      padding: 9px;
+      background: var(--surface2);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .refresh-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .events-scroll {
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .event-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: opacity .15s;
+      align-items: flex-start;
+    }
+
+    .event-item:last-child {
+      border: none;
+      padding-bottom: 0;
+    }
+
+    .event-item:hover {
+      opacity: .75;
+    }
+
+    .event-thumb {
+      width: 52px;
+      height: 36px;
+      border-radius: 6px;
+      background: var(--surface2);
+      flex-shrink: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .event-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .event-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .event-time {
+      font-size: 10px;
+      color: var(--text4);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .event-type {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .event-channels {
+      font-size: 10px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .event-play-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+      align-self: center;
+      transition: all .15s;
+    }
+
+    .event-play-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .center-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .video-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .channel-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      flex-wrap: wrap;
+    }
+
+    .channel-tab {
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text3);
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .channel-tab:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .channel-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 2px 8px rgba(29, 111, 232, .35);
+    }
+
+    .video-wrapper {
+      position: relative;
+      background: #0f172a;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      max-height: 65vh;
+      min-height: 250px;
+    }
+
+    #vp {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+    }
+
+    .video-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #94a3b8;
+    }
+
+    .video-placeholder-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .video-placeholder h3 {
+      font-size: 15px;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    .video-placeholder p {
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+      max-width: 260px;
+    }
+
+    .stream-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, .9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 5;
+      padding: 20px;
+    }
+
+    .stream-overlay.show {
+      display: flex;
+    }
+
+    .loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, .15);
+      border-top-color: var(--primary);
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .loader-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+      text-align: center;
+    }
+
+    .loader-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: center;
+      max-width: 240px;
+    }
+
+    .progress-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 260px;
+      margin-top: 4px;
+    }
+
+    .progress-step {
+      font-size: 11px;
+      color: #64748b;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, .04);
+      border-left: 2px solid transparent;
+      transition: all .3s;
+    }
+
+    .progress-step.active {
+      color: #e2e8f0;
+      background: rgba(29, 111, 232, .15);
+      border-left-color: var(--primary);
+    }
+
+    .progress-step.done {
+      color: #4ade80;
+      border-left-color: #16a34a;
+    }
+
+    .video-topbar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 4;
+      gap: 8px;
+    }
+
+    .video-label {
+      background: rgba(0, 0, 0, .55);
+      backdrop-filter: blur(8px);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: .5px;
+    }
+
+    .live-pill {
+      background: var(--danger);
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 1px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .live-pill.show {
+      display: flex;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+      animation: blink 1s infinite;
+    }
+
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 40px 14px 14px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, .7));
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity .25s;
+      z-index: 4;
+      flex-wrap: wrap;
+    }
+
+    .video-wrapper:hover .video-controls {
+      opacity: 1;
+    }
+
+    .vid-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .15);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, .2);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+
+    .vid-btn:hover {
+      background: rgba(255, 255, 255, .25);
+      transform: scale(1.08);
+    }
+
+    .vid-btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      width: 40px;
+      height: 40px;
+      font-size: 15px;
+    }
+
+    .vid-btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .vid-info {
+      margin-left: auto;
+      font-size: 11px;
+      color: rgba(255, 255, 255, .6);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Browser compat warning banner */
+    .browser-warn {
+      position: absolute;
+      bottom: 60px;
+      left: 12px;
+      right: 12px;
+      z-index: 6;
+      background: rgba(217, 119, 6, .95);
+      color: white;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .browser-warn.show {
+      display: flex;
+    }
+
+    .browser-warn-text {
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .browser-warn-close {
+      cursor: pointer;
+      font-size: 16px;
+      opacity: .8;
+      flex-shrink: 0;
+      margin-top: -2px;
+    }
+
+    .browser-warn-close:hover {
+      opacity: 1;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .stat-item {
+      padding: 10px 14px;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .stat-item:last-child {
+      border-right: none;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text4);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-value.blue {
+      color: var(--primary);
+    }
+
+    .stat-value.green {
+      color: var(--success);
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .right-panel::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .right-panel::-webkit-scrollbar-thumb {
+      background: var(--border);
+    }
+
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .map-box {
+      width: 100%;
+      height: 100%;
+    }
+
+    .gps-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-top: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .gps-strip-item {
+      padding: 7px 10px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .gps-strip-item:nth-child(2) {
+      border-right: none;
+    }
+
+    .gps-strip-item:nth-child(3) {
+      border-bottom: none;
+    }
+
+    .gps-strip-item:nth-child(4) {
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .gps-strip-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text4);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .gps-strip-value {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+      word-break: break-all;
+    }
+
+    .map-fullscreen-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 500;
+      width: 30px;
+      height: 30px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all .15s;
+    }
+
+    .map-fullscreen-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .map-gps-mini {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
+      z-index: 400;
+      background: rgba(15, 23, 42, .82);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .map-gps-mini-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .map-gps-mini-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, .3);
+      animation: blink 1.5s infinite;
+      flex-shrink: 0;
+    }
+
+    .map-gps-mini-speed {
+      font-size: 15px;
+      font-weight: 800;
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+    }
+
+    .map-gps-mini-unit {
+      font-size: 9px;
+      color: rgba(255, 255, 255, .5);
+      margin-top: 1px;
+    }
+
+    .map-gps-mini-right {
+      text-align: right;
+    }
+
+    .map-gps-mini-coords {
+      font-size: 10px;
+      color: rgba(255, 255, 255, .6);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .map-gps-mini-sat {
+      font-size: 9px;
+      color: rgba(255, 255, 255, .4);
+      margin-top: 2px;
+    }
+
+    .map-open-btn {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .map-open-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .map-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      background: #000;
+      flex-direction: column;
+    }
+
+    .map-modal.open {
+      display: flex;
+    }
+
+    .map-modal-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(0, 0, 0, .8) 0%, transparent 100%);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .map-modal-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, .5);
+    }
+
+    .map-modal-close {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, .15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 50%;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+    }
+
+    .map-modal-close:hover {
+      background: rgba(220, 38, 38, .8);
+    }
+
+    .gps-tracker-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      background: rgba(15, 23, 42, .88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 16px;
+      padding: 14px 20px;
+      min-width: 320px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .5);
+      color: white;
+    }
+
+    .gps-tracker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .gps-tracker-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .gps-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(22, 163, 74, .6);
+      animation: pulse-ring 2s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, .6);
+      }
+
+      70% {
+        box-shadow: 0 0 0 8px rgba(22, 163, 74, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+      }
+    }
+
+    .gps-tracker-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, .5);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .gps-tracker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .gps-tracker-item {
+      text-align: center;
+    }
+
+    .gps-tracker-item-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .45);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 3px;
+    }
+
+    .gps-tracker-item-value {
+      font-size: 14px;
+      font-weight: 800;
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.1;
+    }
+
+    .gps-tracker-item-value.highlight {
+      color: #38bdf8;
+    }
+
+    .gps-tracker-item-unit {
+      font-size: 9px;
+      color: rgba(255, 255, 255, .4);
+      margin-top: 1px;
+    }
+
+    .gps-tracker-coords {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, .08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .gps-coords-text {
+      font-size: 10px;
+      color: rgba(255, 255, 255, .55);
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .gps-acc-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .gps-acc-on {
+      background: rgba(22, 163, 74, .25);
+      color: #4ade80;
+    }
+
+    .gps-acc-off {
+      background: rgba(107, 114, 128, .2);
+      color: rgba(255, 255, 255, .5);
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .action-btn {
+      padding: 11px 12px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    .action-btn .ab-icon {
+      font-size: 20px;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    .action-btn .ab-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .action-btn .ab-sub {
+      font-size: 9px;
+      color: var(--text4);
+      margin-top: 1px;
+    }
+
+    .btn-start {
+      border-color: #86efac;
+      background: var(--success-light);
+    }
+
+    .btn-start:hover {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .btn-start:hover .ab-label,
+    .btn-start:hover .ab-sub {
+      color: white;
+    }
+
+    .btn-stop {
+      border-color: #fca5a5;
+      background: var(--danger-light);
+    }
+
+    .btn-stop:hover {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .btn-stop:hover .ab-label,
+    .btn-stop:hover .ab-sub {
+      color: white;
+    }
+
+    .btn-wakeup {
+      border-color: #a5b4fc;
+      background: var(--primary-light);
+    }
+
+    .btn-wakeup:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn-wakeup:hover .ab-label,
+    .btn-wakeup:hover .ab-sub {
+      color: white;
+    }
+
+    .btn-refresh {
+      border-color: #d1d5db;
+    }
+
+    .btn-refresh:hover {
+      background: var(--surface2);
+      border-color: var(--primary);
+    }
+
+    .btn-refresh:hover .ab-label {
+      color: var(--primary);
+    }
+
+    .sim-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .sim-item .sim-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text4);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .sim-item .sim-value {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+      word-break: break-all;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+    }
+
+    .progress-pct {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #38bdf8);
+      border-radius: 10px;
+      transition: width 1s ease;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--text);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      transform: translateX(120%);
+      transition: transform .3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 320px;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.toast-success {
+      background: var(--success);
+    }
+
+    .toast.toast-error {
+      background: var(--danger);
+    }
+
+    .toast.toast-info {
+      background: var(--primary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: var(--text4);
+    }
+
+    .empty-state p {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    /* Debug panel */
+    .debug-panel {
+      position: fixed;
+      bottom: 70px;
+      right: 20px;
+      z-index: 8000;
+      background: #111;
+      color: #0f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      max-width: 320px;
+      display: none;
+      line-height: 1.6;
+    }
+
+    @media (max-width:1200px) {
+      .layout {
+        grid-template-columns: 1fr 1.5fr 1fr;
+      }
+    }
+
+    @media (max-width:1024px) {
+      .layout {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+        gap: 16px;
+      }
+
+      .left-panel, .center-panel, .right-panel {
+        display: contents;
+      }
+
+      #card-gps { order: 1; }
+      #card-camera { order: 2; }
+      #card-events { order: 3; }
+
+      .video-wrapper {
+        min-height: 220px;
+      }
+
+      .header {
+        padding: 10px 16px;
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 60px;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .header-left {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .header-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .header-right > * {
+        flex-shrink: 0;
+      }
+
+      .divider-v {
+        display: none;
+      }
+    }
+
+    @media (max-width:768px) {
+      .stats-bar {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .layout {
+        padding: 10px;
+        gap: 10px;
+      }
+    }
+
+    @media (max-width:480px) {
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .channel-tabs {
+        flex-wrap: wrap;
+      }
+
+      .page-title {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <div class="header-left">
+      <a class="logo" href="#">
+        <img src="/media/logo_aldzama_transparan.png" alt="Aldzama Logo"
+          style="height: 36px; width: auto; object-fit: contain; margin-right: 10px;">
+      </a>
+      <div class="divider-v"></div>
+      <span class="page-title">Aldzama Fleet Monitor</span>
+    </div>
+    <div class="header-right">
+      <div class="badge badge-green">
+        <div class="badge-dot badge-dot-green"></div>Terhubung
+      </div>
+      <div class="clock" id="clock">--:--:--</div>
+      <div id="userBadge"
+        style="display:none;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);">
+        <span>👤</span><span id="userLabel">--</span>
+      </div>
+      <button onclick="doLogout()"
+        style="padding:6px 12px;background:var(--danger-light);border:1.5px solid #fca5a5;border-radius:8px;font-size:12px;font-weight:700;color:var(--danger);cursor:pointer;">Keluar</button>
+    </div>
+  </header>
+
+  <!-- TOP PANEL: Daftar Kendaraan -->
+  <div class="top-panel" style="padding: 16px 16px 0 16px;">
+    <div class="card vehicles-card" id="card-vehicles">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon icon-blue">🚗</div>Daftar Kendaraan
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="count-badge" id="vehicleCount">0</span>
+          <button class="refresh-btn" onclick="loadDevices()" style="padding:4px 10px;font-size:11px;height:auto;line-height:1;">🔄 Perbarui</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 12px;">
+        <div id="vehicleList" style="display:flex; flex-direction:row; gap:12px; overflow-x:auto; padding-bottom:8px;">
+          <div class="empty-state" style="width:100%;text-align:center;">
+            <div style="font-size:28px;margin-bottom:6px">🔄</div>
+            <p>Memuat kendaraan...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div class="left-panel">
+      <!-- GPS CARD -->
+      <div class="card" id="card-gps">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-title-icon icon-blue">📍</div>Lokasi GPS
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="badge badge-blue" id="gpsTimeLabel">--</span>
+            <button class="map-open-btn" onclick="openMapModal()">⛶ Fullscreen</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="map-container">
+            <div class="map-box" id="leafletMap"></div>
+            <button class="map-fullscreen-btn" onclick="openMapModal()" title="Fullscreen">⛶</button>
+            <div class="map-gps-mini" id="mapGpsMini">
+              <div class="map-gps-mini-left">
+                <div class="map-gps-mini-dot"></div>
+                <div>
+                  <div class="map-gps-mini-speed" id="miniSpeed">0</div>
+                  <div class="map-gps-mini-unit">km/h</div>
+                </div>
+              </div>
+              <div class="map-gps-mini-right">
+                <div class="map-gps-mini-coords" id="miniCoords">-- , --</div>
+                <div class="map-gps-mini-sat" id="miniSat">-- satelit</div>
+              </div>
+            </div>
+          </div>
+          <div class="gps-strip">
+            <div class="gps-strip-item">
+              <div class="gps-strip-label">Lintang</div>
+              <div class="gps-strip-value" id="gpsLat">--</div>
+            </div>
+            <div class="gps-strip-item">
+              <div class="gps-strip-label">Bujur</div>
+              <div class="gps-strip-value" id="gpsLng">--</div>
+            </div>
+            <div class="gps-strip-item">
+              <div class="gps-strip-label">Ketinggian</div>
+              <div class="gps-strip-value" id="gpsAlt">-- m</div>
+            </div>
+            <div class="gps-strip-item">
+              <div class="gps-strip-label">Satelit</div>
+              <div class="gps-strip-value" id="gpsSat">--</div>
+            </div>
+          </div>
+          <div style="margin-top:8px; display: flex; gap: 8px;">
+            <button class="map-open-btn" style="flex: 1; justify-content:center; padding:8px;" onclick="refreshGPS()">🔄 Refresh GPS</button>
+            <button class="map-open-btn" style="flex: 1; justify-content:center; padding:8px;" onclick="openMaps()">🗺 Google Maps</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-panel">
+      <!-- VIDEO CARD (Combined with SIM Info) -->
+      <div class="card video-card" id="card-camera">
+        <div class="channel-tabs" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span style="font-size:12px;font-weight:700;color:var(--text3);margin-right:4px">Kamera:</span>
+            <button class="channel-tab active" onclick="switchCh(1,this)">📷 Depan</button>
+            <button class="channel-tab" onclick="switchCh(2,this)">🔭 Belakang</button>
+            <button class="channel-tab" onclick="switchCh(3,this)">🪑 Kabin</button>
+          </div>
+          <span id="hlsStatusBadge" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--success-light);color:var(--success); margin-right: 14px;">HLS OK</span>
+        </div>
+
+        <div class="video-wrapper" id="videoWrapper">
+          <video id="vp" autoplay muted playsinline></video>
+          <div class="video-placeholder" id="videoPlaceholder">
+            <div class="video-placeholder-icon">📡</div>
+            <h3 id="placeholderTitle">Tidak Ada Tayangan</h3>
+            <p id="placeholderHint">Pilih kendaraan, lalu tekan Mulai Live</p>
+          </div>
+          <div class="stream-overlay" id="streamOverlay">
+            <div class="loader"></div>
+            <div class="loader-text" id="overlayText">Menghubungkan...</div>
+            <div class="loader-sub" id="overlaySub">Membangunkan kamera, harap tunggu</div>
+            <div class="progress-steps" id="progressSteps"></div>
+          </div>
+          <!-- Browser compat warning -->
+          <div class="browser-warn" id="browserWarn">
+            <span>⚠️</span>
+            <div class="browser-warn-text" id="browserWarnText"></div>
+            <span class="browser-warn-close" onclick="document.getElementById('browserWarn').classList.remove('show')">✕</span>
+          </div>
+          <div class="video-topbar">
+            <div class="video-label" id="videoLabel">CH-1 • DEPAN</div>
+            <div class="live-pill" id="livePill">
+              <div class="live-dot"></div> SIARAN LANGSUNG
+            </div>
+          </div>
+          <div class="video-controls" id="videoControls">
+            <button class="vid-btn vid-btn-primary" id="mainPlayBtn" onclick="toggleLive()">▶</button>
+            <button class="vid-btn" onclick="toggleMute()" id="muteBtn">🔇</button>
+            <button class="vid-btn" onclick="toggleFS()">⛶</button>
+            <button class="vid-btn" onclick="snapshot()">📷</button>
+            <span class="vid-info" id="vidInfo">Siap</span>
+          </div>
+        </div>
+
+        <!-- CAMERA ACTIONS BAR removed: redundant with .video-controls -->
+
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-label">Kendaraan</div>
+            <div class="stat-value" id="statCar">--</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Kecepatan</div>
+            <div class="stat-value blue" id="statSpeed">-- km/h</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Mesin</div>
+            <div class="stat-value green" id="statAcc">--</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Sinyal</div>
+            <div class="stat-value blue" id="statSignal">-- dBm</div>
+          </div>
+
+        </div>
+
+        <!-- SIM INFO SECTION (Integrated) -->
+        <div style="padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface2);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="card-title" style="font-size: 12px;">
+              <div class="card-title-icon icon-orange" style="width: 24px; height: 24px; font-size: 12px;">📶</div>Info Kartu SIM
+            </div>
+            <span class="badge" id="simStatusBadge" style="background:var(--success-light);color:var(--success); font-size: 10px; padding: 2px 8px;">--</span>
+          </div>
+          
+          <div class="sim-info" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px;">
+            <div class="sim-item">
+              <div class="sim-label">Paket</div>
+              <div class="sim-value" id="simPackage">--</div>
+            </div>
+            <div class="sim-item">
+              <div class="sim-label">Berlaku s/d</div>
+              <div class="sim-value" id="simExpiry">--</div>
+            </div>
+            <div class="sim-item">
+              <div class="sim-label">Sisa Kuota</div>
+              <div class="sim-value" id="simRemain" style="color:var(--success)">--</div>
+            </div>
+            <div class="sim-item">
+              <div class="sim-label">Terpakai</div>
+              <div class="sim-value" id="simUsed">--</div>
+            </div>
+          </div>
+          
+          <div style="background: var(--surface); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="progress-header" style="margin-bottom: 4px;">
+              <span class="progress-label">Penggunaan Data</span>
+              <span class="progress-pct" id="simPct">--%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="simBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+
+
+      <!-- EVENTS CARD -->
+      <div class="card" id="card-events">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-title-icon icon-orange">🎬</div>Rekaman Terbaru
+          </div>
+          <span class="count-badge" id="eventCount">0</span>
+        </div>
+        <div class="card-body" style="padding:8px 12px">
+          <div class="events-scroll" id="eventList">
+            <div class="empty-state">
+              <div style="font-size:24px;margin-bottom:4px">📂</div>
+              <p>Belum ada rekaman</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP FULLSCREEN MODAL -->
+  <div class="map-modal" id="mapModal">
+    <div class="map-modal-header">
+      <div class="map-modal-title">
+        <span>📍</span>
+        <span id="modalMapTitle">GPS Tracker</span>
+      </div>
+      <button class="map-modal-close" onclick="closeMapModal()">✕</button>
+    </div>
+    <div id="leafletMapFull" style="flex:1;width:100%;"></div>
+    <div class="gps-tracker-panel" id="gpsTrackerPanel">
+      <div class="gps-tracker-header">
+        <div class="gps-tracker-name">
+          <div class="gps-pulse"></div>
+          <span id="trackerVehicleName">--</span>
+        </div>
+        <div class="gps-tracker-time" id="trackerTime">--:--:--</div>
+      </div>
+      <div class="gps-tracker-grid">
+        <div class="gps-tracker-item">
+          <div class="gps-tracker-item-label">Kecepatan</div>
+          <div class="gps-tracker-item-value highlight" id="trackerSpeed">0</div>
+          <div class="gps-tracker-item-unit">km/h</div>
+        </div>
+        <div class="gps-tracker-item">
+          <div class="gps-tracker-item-label">Ketinggian</div>
+          <div class="gps-tracker-item-value" id="trackerAlt">--</div>
+          <div class="gps-tracker-item-unit">meter</div>
+        </div>
+        <div class="gps-tracker-item">
+          <div class="gps-tracker-item-label">Satelit</div>
+          <div class="gps-tracker-item-value" id="trackerSat">--</div>
+          <div class="gps-tracker-item-unit">terhubung</div>
+        </div>
+        <div class="gps-tracker-item">
+          <div class="gps-tracker-item-label">Sinyal</div>
+          <div class="gps-tracker-item-value" id="trackerSignal">--</div>
+          <div class="gps-tracker-item-unit">dBm</div>
+        </div>
+      </div>
+      <div class="gps-tracker-coords">
+        <div class="gps-coords-text">
+          <span>📍</span>
+          <span id="trackerCoords">-- , --</span>
+        </div>
+        <div class="gps-acc-badge" id="trackerAcc">
+          <span>⚙️</span><span>--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="debug-panel" id="debugPanel"></div>
+
+  <script>
+    const BASE = window.location.origin;
+    const H = { 'Content-Type': 'application/json' };
+
+    let ch = 1, isLive = false, hlsPlayer = null, sseSource = null;
+    let leafletMap = null, leafletMarker = null;
+    let leafletMapFull = null, leafletMarkerFull = null;
+    let allMarkers = [], allMarkersFull = [];
+    let sn = '', imei = '', iccid = '';
+    let lat = -7.2575, lng = 112.7521;
+    let devices = [];
+    let deviceLocations = {};
+    let currentGPSData = {};
+
+    // ═══ BROWSER / HLS CAPABILITY CHECK ═══════════════════════════
+
+    function checkHLSSupport() {
+      const v = document.createElement('video');
+      const nativeHLS = v.canPlayType('application/vnd.apple.mpegurl') !== '';
+      const hasHlsJs = typeof Hls !== 'undefined' && Hls.isSupported();
+      const badge = document.getElementById('hlsStatusBadge');
+
+      console.log('[HLS] nativeHLS:', nativeHLS, 'HLS.js:', hasHlsJs, '_hlsLoaded:', window._hlsLoaded, '_hlsLoadError:', window._hlsLoadError);
+
+      if (nativeHLS) {
+        // Safari — native support
+        badge.textContent = 'HLS Native (Safari)';
+        badge.style.background = 'var(--success-light)';
+        badge.style.color = 'var(--success)';
+        return true;
+      }
+
+      if (hasHlsJs) {
+        badge.textContent = 'HLS.js OK';
+        badge.style.background = 'var(--success-light)';
+        badge.style.color = 'var(--success)';
+        return true;
+      }
+
+      if (window._hlsLoadError) {
+        badge.textContent = '⚠ HLS.js Gagal Dimuat';
+        badge.style.background = 'var(--danger-light)';
+        badge.style.color = 'var(--danger)';
+        showBrowserWarn('HLS.js gagal dimuat dari CDN. Cek koneksi internet atau coba <b>hard refresh</b> (Ctrl+Shift+R). Jika tetap gagal, koneksi server mungkin memblokir CDN.');
+        return false;
+      }
+
+      if (!window._hlsLoaded) {
+        badge.textContent = '⏳ HLS.js Loading...';
+        badge.style.background = 'var(--warning-light)';
+        badge.style.color = 'var(--warning)';
+        return false; // Will retry
+      }
+
+      // Loaded but not supported
+      const ua = navigator.userAgent;
+      const isChrome = /Chrome\//.test(ua) && !/Edg\//.test(ua);
+      const isEdge = /Edg\//.test(ua);
+      const isFirefox = /Firefox\//.test(ua);
+      const isSafari = /Safari\//.test(ua) && !/Chrome\//.test(ua);
+      const isMobileChrome = isChrome && /Android/.test(ua);
+
+      let warnMsg = '';
+      if (isMobileChrome) {
+        warnMsg = 'Chrome Android: HLS.js mungkin tidak mendukung format kamera ini. Coba buka di browser desktop atau gunakan Safari di iOS.';
+      } else if (isFirefox) {
+        warnMsg = 'Firefox memiliki dukungan MSE terbatas. Gunakan Chrome/Edge/Safari untuk hasil terbaik.';
+      } else {
+        warnMsg = 'Browser ini tidak mendukung pemutaran HLS. Gunakan <b>Chrome Desktop</b>, <b>Microsoft Edge</b>, atau <b>Safari</b>.';
+      }
+
+      badge.textContent = '✗ Tidak Didukung';
+      badge.style.background = 'var(--danger-light)';
+      badge.style.color = 'var(--danger)';
+      showBrowserWarn(warnMsg);
+      return false;
+    }
+
+    function showBrowserWarn(msg) {
+      const el = document.getElementById('browserWarn');
+      document.getElementById('browserWarnText').innerHTML = msg;
+      el.classList.add('show');
+    }
+
+    // Wait for HLS.js to fully load (CDN might be async)
+    function waitForHLS(cb, timeout = 8000) {
+      const v = document.createElement('video');
+      if (v.canPlayType('application/vnd.apple.mpegurl') !== '') { cb(true); return; }
+      const start = Date.now();
+      const check = () => {
+        if (typeof Hls !== 'undefined') { cb(Hls.isSupported()); return; }
+        if (window._hlsLoadError) { cb(false); return; }
+        if (Date.now() - start > timeout) { cb(false); return; }
+        setTimeout(check, 200);
+      };
+      check();
+    }
+
+    // ═══ CLOCK ════════════════════════════════════════════════════
+
+    setInterval(() => {
+      const t = new Date().toLocaleTimeString('id-ID');
+      document.getElementById('clock').textContent = t;
+      document.getElementById('trackerTime').textContent = t;
+    }, 1000);
+
+    // ═══ API ══════════════════════════════════════════════════════
+
+    async function api(path, method = 'GET', body = null) {
+      try {
+        const o = { method, headers: H };
+        if (body) o.body = JSON.stringify(body);
+        const r = await fetch(BASE + path, o);
+        if (!r.ok) return null;
+        return await r.json();
+      } catch { return null; }
+    }
+
+    // ═══ TOAST ════════════════════════════════════════════════════
+
+    function toast(msg, type = '', dur = 3500) {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast${type ? ' toast-' + type : ''}`;
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      t.innerHTML = `<span>${icons[type] || '💬'}</span><span>${msg}</span>`;
+      c.appendChild(t);
+      requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, dur);
+    }
+
+    // ═══ MAPS ═════════════════════════════════════════════════════
+
+    function makeIcon(color, isSelected = false) {
+      const size = isSelected ? 18 : 12;
+      const border = isSelected ? 3 : 2;
+      return L.divIcon({
+        className: '',
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${border}px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>`,
+        iconSize: [size, size], iconAnchor: [size / 2, size / 2]
+      });
+    }
+
+    function makePulsingIcon(color) {
+      return L.divIcon({
+        className: '',
+        html: `<div style="position:relative;width:24px;height:24px;">
+      <div style="position:absolute;inset:0;border-radius:50%;background:${color};opacity:0.3;animation:map-pulse 2s infinite;"></div>
+      <div style="position:absolute;inset:4px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>
+    </div>
+    <style>@keyframes map-pulse{0%{transform:scale(1);opacity:.3}70%{transform:scale(2);opacity:0}100%{transform:scale(1);opacity:0}}</style>`,
+        iconSize: [24, 24], iconAnchor: [12, 12]
+      });
+    }
+
+    function makeCarIcon(name, speed, isSelected) {
+      const bg = isSelected ? 'var(--primary)' : '#6b7280';
+      const shadow = isSelected ? '0 0 0 5px rgba(29,111,232,0.3)' : '0 2px 8px rgba(0,0,0,0.3)';
+      const pulseAnim = isSelected ? '<div style="position:absolute;inset:-5px;border-radius:8px;background:var(--primary);opacity:0.4;animation:map-pulse 2s infinite;z-index:-1;"></div>' : '';
+
+      const html = `
+    <div style="display:flex; flex-direction:column; align-items:center; transform:translateY(-100%); margin-top: 15px;">
+      <div style="background:rgba(15,23,42,0.85); backdrop-filter:blur(4px); color:white; padding:5px 10px; border-radius:8px; font-size:11px; white-space:nowrap; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.3); margin-bottom: 6px; border:1px solid rgba(255,255,255,0.1);">
+        <b style="color:${isSelected ? '#60a5fa' : '#fff'};font-size:12px;">${name}</b><br>
+        <span style="font-family:'JetBrains Mono',monospace;color:#a7f3d0;font-weight:700;">${speed}</span> <span style="color:#94a3b8;font-size:9px;">km/h</span>
+      </div>
+      <div style="position:relative; width:54px; height:34px; background:${bg}; border-radius:8px; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:${shadow}; padding:2px;">
+        ${pulseAnim}
+        <img src="/media/logo_aldzama_transparan.png" style="width:100%; height:100%; object-fit:contain;">
+      </div>
+    </div>
+  `;
+      return L.divIcon({
+        className: '',
+        html: html,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+      });
+    }
+
+    function initLeafletMap() {
+      if (leafletMap) return;
+      leafletMap = L.map('leafletMap', { zoomControl: true, attributionControl: false, scrollWheelZoom: true }).setView([lat, lng], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leafletMap);
+      leafletMarker = L.marker([lat, lng], { icon: makePulsingIcon('#1d6fe8') }).addTo(leafletMap);
+      const ro = new ResizeObserver(() => { if (leafletMap) leafletMap.invalidateSize(); });
+      ro.observe(document.getElementById('leafletMap'));
+    }
+
+    function initLeafletMapFull() {
+      if (leafletMapFull) return;
+      leafletMapFull = L.map('leafletMapFull', { zoomControl: true, attributionControl: false, scrollWheelZoom: true }).setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leafletMapFull);
+      leafletMarkerFull = L.marker([lat, lng], { icon: makeCarIcon('Kendaraan', 0, true) }).addTo(leafletMapFull);
+    }
+
+    function openMapModal() {
+      document.getElementById('mapModal').classList.add('open');
+      setTimeout(() => {
+        initLeafletMapFull();
+        rebuildAllMarkersFull();
+        if (leafletMapFull && lat && lng) leafletMapFull.setView([lat, lng], 15);
+        leafletMapFull.invalidateSize();
+      }, 100);
+      updateTrackerPanel();
+      document.addEventListener('keydown', onModalEsc);
+    }
+
+    function closeMapModal() {
+      document.getElementById('mapModal').classList.remove('open');
+      document.removeEventListener('keydown', onModalEsc);
+    }
+
+    function onModalEsc(e) { if (e.key === 'Escape') closeMapModal(); }
+
+    function updateTrackerPanel() {
+      const d = currentGPSData;
+      const name = d.carName || (sn ? 'Kendaraan ' + sn.slice(-6) : '--');
+      document.getElementById('trackerVehicleName').textContent = name;
+      document.getElementById('trackerSpeed').textContent = d.speed ?? '--';
+      document.getElementById('trackerAlt').textContent = d.altitude ?? '--';
+      document.getElementById('trackerSat').textContent = d.satelliteCount ?? '--';
+      document.getElementById('trackerSignal').textContent = d.signalStrength ?? '--';
+      document.getElementById('trackerCoords').textContent = d.latitude && d.longitude
+        ? `${d.latitude.toFixed(5)}, ${d.longitude.toFixed(5)}` : '-- , --';
+      const accEl = document.getElementById('trackerAcc');
+      const isOn = d.accState === 1;
+      accEl.className = `gps-acc-badge ${isOn ? 'gps-acc-on' : 'gps-acc-off'}`;
+      accEl.innerHTML = `<span>${isOn ? '🟢' : '⚫'}</span><span>Mesin ${isOn ? 'ON' : 'OFF'}</span>`;
+      document.getElementById('modalMapTitle').textContent = `GPS Tracker • ${name}`;
+    }
+
+    function rebuildAllMarkers() {
+      if (!leafletMap) return;
+      allMarkers.forEach(m => leafletMap.removeLayer(m));
+      allMarkers = [];
+      Object.entries(deviceLocations).forEach(([dsn, loc]) => {
+        if (!loc.lat || !loc.lng) return;
+        const isSelected = dsn === sn;
+        if (isSelected) {
+          leafletMarker.setLatLng([loc.lat, loc.lng]);
+          leafletMarker.setIcon(makePulsingIcon('#1d6fe8'));
+          leafletMarker.bindPopup(`<b>${loc.name}</b><br>${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`);
+        } else {
+          const m = L.marker([loc.lat, loc.lng], { icon: makeIcon('#6b7280', false) })
+            .addTo(leafletMap)
+            .on('click', () => {
+              const idx = devices.findIndex(d => (d.deviceSn || d.imei) === dsn);
+              if (idx >= 0) selectVehicle(idx, document.querySelectorAll('.vehicle-item')[idx]);
+            });
+          allMarkers.push(m);
+        }
+      });
+    }
+
+    function rebuildAllMarkersFull() {
+      if (!leafletMapFull) return;
+      allMarkersFull.forEach(m => leafletMapFull.removeLayer(m));
+      allMarkersFull = [];
+      Object.entries(deviceLocations).forEach(([dsn, loc]) => {
+        if (!loc.lat || !loc.lng) return;
+        const isSelected = dsn === sn;
+        const icon = makeCarIcon(loc.name, loc.speed || 0, isSelected);
+        if (isSelected) {
+          leafletMarkerFull.setLatLng([loc.lat, loc.lng]);
+          leafletMarkerFull.setIcon(icon);
+        } else {
+          const m = L.marker([loc.lat, loc.lng], { icon: icon })
+            .addTo(leafletMapFull)
+            .on('click', () => {
+              const idx = devices.findIndex(d => (d.deviceSn || d.imei) === dsn);
+              if (idx >= 0) {
+                selectVehicle(idx, document.querySelectorAll('.vehicle-item')[idx]);
+                closeMapModal(); // Auto close modal to show selected vehicle
+              }
+            });
+          allMarkersFull.push(m);
+        }
+      });
+    }
+
+    function updateSelectedMarker(la, ln) {
+      if (!leafletMap) return;
+      leafletMarker.setLatLng([la, ln]);
+      if (sn && deviceLocations[sn]) { deviceLocations[sn].lat = la; deviceLocations[sn].lng = ln; }
+
+      if (leafletMarkerFull) {
+        leafletMarkerFull.setLatLng([la, ln]);
+        if (sn && deviceLocations[sn]) {
+          const icon = makeCarIcon(deviceLocations[sn].name, deviceLocations[sn].speed || 0, true);
+          leafletMarkerFull.setIcon(icon);
+        }
+      }
+      rebuildAllMarkers();
+
+      // Auto-follow kendaraan yang dipilih
+      leafletMap.panTo([la, ln]);
+      if (leafletMapFull && document.getElementById('mapModal').classList.contains('open')) {
+        leafletMapFull.panTo([la, ln]);
+      }
+    }
+
+    function openMaps() {
+      window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+    }
+
+    // ═══ DEVICES ══════════════════════════════════════════════════
+
+    async function loadDevices() {
+      const el = document.getElementById('vehicleList');
+      el.innerHTML = '<div class="empty-state"><div style="font-size:28px;margin-bottom:6px">🔄</div><p>Memuat...</p></div>';
+      const r = await api('/lingdu-app/api/user-device/my-devices');
+      if (!r?.data) {
+        el.innerHTML = '<div class="empty-state"><div style="font-size:28px;margin-bottom:6px">❌</div><p>Gagal memuat. Token expired?</p></div>';
+        return;
+      }
+      devices = Array.isArray(r.data) ? r.data : (r.data.deviceList || r.data.list || [r.data]);
+      document.getElementById('vehicleCount').textContent = devices.length;
+      devices.forEach(d => {
+        const dsn = d.deviceSn || d.imei || '';
+        if (!dsn) return;
+        deviceLocations[dsn] = deviceLocations[dsn] || {
+          lat: d.latitude || 0, lng: d.longitude || 0,
+          name: d.carName || d.deviceName || ('Kendaraan ' + dsn.slice(-6)),
+          speed: d.speed || 0
+        };
+      });
+      renderDevices();
+      if (devices.length && !sn) {
+        const d = devices[0];
+        sn = d.deviceSn || d.imei || sn;
+        imei = d.imei || d.deviceSn || imei;
+        iccid = d.iccid || iccid;
+        updateStats(d);
+        document.getElementById('placeholderHint').textContent = (d.carName || d.deviceName || 'Kendaraan') + ' siap • Tekan Mulai Live';
+      }
+      await loadAllGPS();
+    }
+
+    async function loadAllGPS() {
+      const promises = devices.map(async d => {
+        const dsn = d.deviceSn || d.imei || '';
+        if (!dsn) return;
+        const r = await api(`/lingdu-app/api/location/last-location?deviceSn=${dsn}`);
+        if (r?.data?.latitude && r?.data?.longitude) {
+          deviceLocations[dsn] = {
+            lat: r.data.latitude, lng: r.data.longitude,
+            name: d.carName || d.deviceName || ('Kendaraan ' + dsn.slice(-6)),
+            speed: r.data.speed || 0
+          };
+        }
+      });
+      for (let i = 0; i < promises.length; i += 4) await Promise.all(promises.slice(i, i + 4));
+      rebuildAllMarkers();
+    }
+
+    function renderDevices() {
+      const el = document.getElementById('vehicleList');
+      if (!devices.length) {
+        el.innerHTML = '<div class="empty-state"><div style="font-size:28px;margin-bottom:6px">🚗</div><p>Belum ada kendaraan</p></div>';
+        return;
+      }
+      el.innerHTML = devices.map((d, i) => {
+        const dsn = d.deviceSn || d.imei || '';
+        const name = d.carName || d.deviceName || d.vehicleName || ('Kamera ' + dsn.slice(-6));
+        const model = d.deviceModel || d.model || '--';
+        const on = d.onlineState === 1 || d.onlineState === '1';
+        const sleep = d.onlineState === 2;
+        const sc = on ? 'status-online' : sleep ? 'status-sleep' : 'status-offline';
+        return `<div class="vehicle-item${dsn === sn ? ' active' : ''}" onclick="selectVehicle(${i},this)">
+      <div class="vehicle-avatar">🚗</div>
+      <div class="vehicle-info">
+        <div class="vehicle-name">${name}</div>
+        <div class="vehicle-meta">${model} • ${dsn.slice(-8)}</div>
+      </div>
+      <div class="status-indicator ${sc}"></div>
+    </div>`;
+      }).join('');
+    }
+
+    // Auto-refresh device status every 15s (merge updates and re-render)
+    let _deviceRefreshLock = false;
+    setInterval(async () => {
+      if (_deviceRefreshLock) return;
+      _deviceRefreshLock = true;
+      try {
+        const r = await api('/lingdu-app/api/user-device/my-devices');
+        if (r?.data) {
+          const newDevices = Array.isArray(r.data) ? r.data : (r.data.deviceList || r.data.list || [r.data]);
+          newDevices.forEach(nd => {
+            const dsn = nd.deviceSn || nd.imei || '';
+            if (!dsn) return;
+            const idx = devices.findIndex(d => (d.deviceSn || d.imei) === dsn);
+            if (idx >= 0) {
+              devices[idx] = Object.assign({}, devices[idx], nd);
+            } else {
+              devices.push(nd);
+            }
+          });
+          renderDevices();
+        }
+      } catch (e) {
+        console.warn('refreshDevices error', e);
+      } finally {
+        _deviceRefreshLock = false;
+      }
+    }, 15000);
+
+    function selectVehicle(i, el) {
+      const d = devices[i]; if (!d) return;
+      if (isLive) stopLiveSync();
+      document.querySelectorAll('.vehicle-item').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+      sn = d.deviceSn || d.imei || sn;
+      imei = d.imei || d.deviceSn || imei;
+      iccid = d.iccid || iccid;
+      updateStats(d);
+      const name = d.carName || d.deviceName || ('Kendaraan ' + sn.slice(-6));
+      document.getElementById('placeholderHint').textContent = name + ' dipilih • Tekan Mulai Live';
+      document.getElementById('trackerVehicleName').textContent = name;
+      loadGPS(); loadEvents(); loadSIM();
+      if (deviceLocations[sn]?.lat) {
+        lat = deviceLocations[sn].lat; lng = deviceLocations[sn].lng;
+        rebuildAllMarkers();
+        leafletMap.setView([lat, lng], 16); // Auto-zoom ke kendaraan yang dipilih
+        if (leafletMapFull) {
+          rebuildAllMarkersFull();
+          leafletMapFull.setView([lat, lng], 16);
+        }
+      }
+      toast(name + ' dipilih', 'info');
+    }
+
+    function updateStats(d) {
+      const name = d.carName || d.deviceName || ('Kendaraan ' + sn.slice(-6));
+      document.getElementById('statCar').textContent = name;
+    }
+
+    // ═══ GPS ══════════════════════════════════════════════════════
+
+    async function loadGPS() {
+      const r = await api(`/lingdu-app/api/location/last-location?deviceSn=${sn}`);
+      if (!r?.data) return;
+      const d = r.data;
+      lat = d.latitude; lng = d.longitude;
+      currentGPSData = { ...d, carName: devices.find(dv => (dv.deviceSn || dv.imei) === sn)?.carName };
+      if (sn) deviceLocations[sn] = { ...(deviceLocations[sn] || {}), lat: d.latitude, lng: d.longitude, speed: d.speed || 0 };
+      document.getElementById('gpsLat').textContent = d.latitude?.toFixed(6) ?? '--';
+      document.getElementById('gpsLng').textContent = d.longitude?.toFixed(6) ?? '--';
+      document.getElementById('gpsAlt').textContent = (d.altitude || 0) + ' m';
+      document.getElementById('gpsSat').textContent = (d.satelliteCount || 0) + ' satelit';
+      document.getElementById('statSpeed').textContent = (d.speed || 0) + ' km/h';
+      document.getElementById('statAcc').textContent = d.accState === 1 ? 'Menyala' : 'Mati';
+      document.getElementById('statAcc').style.color = d.accState === 1 ? 'var(--success)' : 'var(--text4)';
+      document.getElementById('statSignal').textContent = (d.signalStrength || 0) + ' dBm';
+      document.getElementById('gpsTimeLabel').textContent = d.formattedDateTime?.split(' ')[1] ?? '--';
+      document.getElementById('miniSpeed').textContent = d.speed || 0;
+      document.getElementById('miniCoords').textContent = d.latitude && d.longitude
+        ? `${Math.abs(d.latitude).toFixed(4)}° ${d.longitude.toFixed(4)}°` : '-- , --';
+      document.getElementById('miniSat').textContent = (d.satelliteCount || 0) + ' satelit';
+
+      updateSelectedMarker(lat, lng);
+      if (document.getElementById('mapModal').classList.contains('open')) updateTrackerPanel();
+    }
+
+    async function refreshGPS() {
+      toast('Memperbarui GPS...', 'info');
+      await loadGPS();
+      toast('GPS diperbarui!', 'success');
+    }
+
+    // ═══ EVENTS ═══════════════════════════════════════════════════
+
+    async function loadEvents() {
+      const r = await api(`/lingdu-app/api/event/pagination?deviceSn=${sn}&eventType=0&pageSize=10&pageNumber=1&readState=0`);
+      if (!r?.data) return;
+      const recs = r.data.pageRecords || [];
+      document.getElementById('eventCount').textContent = r.data.totalRecord || 0;
+      const el = document.getElementById('eventList');
+      if (!recs.length) {
+        el.innerHTML = '<div class="empty-state"><div style="font-size:24px;margin-bottom:4px">📂</div><p>Belum ada rekaman</p></div>';
+        return;
+      }
+      el.innerHTML = recs.map(ev => {
+        const c1 = ev.mediaInfo?.find(m => m.channelNo === 1);
+        const th = c1?.thumbnail ? proxyMedia(c1.thumbnail) : '';
+        const t = ev.eventTime?.split(' ')[1] || '--';
+        const dt = ev.eventTime?.split(' ')[0] || '';
+        return `<div class="event-item" onclick="playVOD('${c1?.mediaUrl || ''}')">
+      <div class="event-thumb">${th ? `<img src="${th}" onerror="this.parentElement.innerHTML='🎬'">` : '🎬'}</div>
+      <div class="event-info">
+        <div class="event-time">${dt} ${t}</div>
+        <div class="event-type">Peristiwa Alarm</div>
+        <div class="event-channels">${ev.channelCount || '?'} Kamera • ${ev.mediaInfo?.length || 0} File</div>
+      </div>
+      <button class="event-play-btn">▶</button>
+    </div>`;
+      }).join('');
+    }
+
+    function proxyMedia(url) {
+      if (!url) return '';
+      if (url.startsWith('http://lingdu-ap.lulushun.net:8803'))
+        return url.replace('http://lingdu-ap.lulushun.net:8803', BASE);
+      if (url.startsWith('/media/')) return BASE + url;
+      return url;
+    }
+
+    // ═══ SIM ══════════════════════════════════════════════════════
+
+    async function loadSIM() {
+      const r = await api(`/lingdu-app/api/eCar-overseas/sim-info?iccid=${iccid}&deviceSn=${sn}`);
+      if (!r?.data) return;
+      const d = r.data;
+      document.getElementById('simStatusBadge').textContent = d.status === 'Activated' ? 'Aktif' : d.status || '--';
+      document.getElementById('simPackage').textContent = d.comboName || '--';
+      document.getElementById('simExpiry').textContent = d.serviceEndTime?.split(' ')[0] || '--';
+      document.getElementById('simRemain').textContent = parseFloat(d.simUsableFlow || 0).toFixed(0) + ' MB';
+      document.getElementById('simUsed').textContent = parseFloat(d.simUsedFlow || 0).toFixed(0) + ' MB';
+      const pct = d.simTotalFlow > 0 ? ((d.simUsedFlow / d.simTotalFlow) * 100).toFixed(1) : 0;
+      document.getElementById('simPct').textContent = pct + '%';
+      document.getElementById('simBar').style.width = pct + '%';
+    }
+
+    // ═══ STREAM ═══════════════════════════════════════════════════
+
+    function setOverlay(show, text = '', sub = '') {
+      document.getElementById('streamOverlay').classList.toggle('show', show);
+      document.getElementById('overlayText').textContent = text;
+      document.getElementById('overlaySub').textContent = sub;
+      if (!show) document.getElementById('progressSteps').innerHTML = '';
+    }
+
+    function addProgressStep(msg) {
+      const el = document.getElementById('progressSteps');
+      el.querySelectorAll('.progress-step.active').forEach(s => {
+        s.classList.remove('active'); s.classList.add('done');
+        s.textContent = '✓ ' + s.textContent;
+      });
+      const step = document.createElement('div');
+      step.className = 'progress-step active';
+      step.textContent = msg;
+      el.appendChild(step);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function startLive() {
+      if (isLive) { toast('Siaran sudah aktif', 'info'); return; }
+      if (!sn) { toast('Pilih kendaraan terlebih dahulu', 'error'); return; }
+
+      // Check HLS support before starting
+      const supported = await new Promise(resolve => waitForHLS(resolve, 5000));
+      if (!supported) {
+        const v = document.createElement('video');
+        if (v.canPlayType('application/vnd.apple.mpegurl') === '') {
+          toast('Browser tidak mendukung HLS. Gunakan Chrome, Edge, atau Safari.', 'error');
+          showBrowserWarn('Browser ini tidak mendukung HLS live streaming. Gunakan <b>Chrome Desktop</b>, <b>Microsoft Edge</b>, atau <b>Safari</b>.');
+          return;
+        }
+      }
+
+      document.getElementById('videoPlaceholder').style.display = 'none';
+      setOverlay(true, 'Menghubungkan...', 'Membangunkan kamera, harap tunggu');
+      document.getElementById('mainPlayBtn').innerHTML = '⏳';
+
+      if (sseSource) { sseSource.close(); sseSource = null; }
+      sseSource = new EventSource(`${BASE}/get-stream?sn=${sn}&ch=${ch}`);
+
+      sseSource.addEventListener('progress', e => {
+        const msg = e.data;
+        addProgressStep(msg);
+        document.getElementById('overlaySub').textContent = msg;
+        if (msg.includes('Membangunkan')) document.getElementById('overlayText').textContent = 'Menghubungkan kamera...';
+        else if (msg.includes('URL')) document.getElementById('overlayText').textContent = 'Mendapatkan stream...';
+        else if (msg.includes('HLS') || msg.includes('segmen') || msg.includes('codec')) document.getElementById('overlayText').textContent = 'Memulai encoder video...';
+      });
+
+      sseSource.addEventListener('done', e => {
+        sseSource.close(); sseSource = null;
+        const data = JSON.parse(e.data);
+        setOverlay(false);
+        if (!data.ok || !data.hls) {
+          toast(data.msg || 'Kamera tidak merespons', 'error');
+          showPlaceholder('❌', data.msg || 'Gagal terhubung ke kamera');
+          document.getElementById('mainPlayBtn').innerHTML = '▶';
+          return;
+        }
+        playHLS(data.hls);
+      });
+
+      sseSource.onerror = () => {
+        if (sseSource) { sseSource.close(); sseSource = null; }
+        setOverlay(false); isLive = false;
+        toast('Koneksi SSE terputus', 'error');
+        showPlaceholder();
+        document.getElementById('mainPlayBtn').innerHTML = '▶';
+      };
+    }
+
+    // ═══ PLAY HLS ═════════════════════════════════════════════════
+
+    function playHLS(hlsPath) {
+      const v = document.getElementById('vp');
+      isLive = true;
+      destroyHLS();
+      setOverlay(true, 'Memuat video...', 'Menunggu frame pertama...');
+      document.getElementById('videoPlaceholder').style.display = 'none';
+      v.style.display = 'block';
+
+      let videoStarted = false;
+      let fallbackTimer = null;
+      let retryCount = 0;
+      const MAX_RETRIES = 3;
+
+      const url = BASE + hlsPath;
+
+      function onVideoPlaying() {
+        if (videoStarted) return;
+        videoStarted = true;
+        clearTimeout(fallbackTimer);
+        v.removeEventListener('timeupdate', onVideoPlaying);
+        v.removeEventListener('playing', onVideoPlaying);
+        setOverlay(false);
+        document.getElementById('livePill').classList.add('show');
+        document.getElementById('mainPlayBtn').innerHTML = '⏹';
+        document.getElementById('vidInfo').textContent = 'Siaran Langsung • CH' + ch;
+        toast('Siaran langsung aktif!', 'success');
+      }
+
+      v.addEventListener('timeupdate', onVideoPlaying);
+      v.addEventListener('playing', onVideoPlaying);
+
+      fallbackTimer = setTimeout(() => {
+        if (!videoStarted) {
+          setOverlay(false);
+          toast('Video lambat dimuat — coba stop & mulai ulang', 'error');
+          document.getElementById('mainPlayBtn').innerHTML = '▶';
+          isLive = false; showPlaceholder();
+        }
+      }, 40000);
+
+      // ── Safari / iOS: native HLS ──────────────────────────────
+      const testV = document.createElement('video');
+      if (testV.canPlayType('application/vnd.apple.mpegurl') !== '') {
+        let nativeRetry = 0;
+        const MAX_NATIVE_RETRIES = 3;
+
+        function tryNativeLoad() {
+          // Tambahkan cache-bust agar Safari tidak load M3U8 lama
+          const bustUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+          console.log(`[HLS] Native load attempt ${nativeRetry + 1}, url: ${bustUrl}`);
+
+          v.onerror = (e) => {
+            const code = v.error ? v.error.code : '?';
+            const msg = v.error ? v.error.message : 'unknown';
+            console.warn(`[HLS] Native error code=${code}: ${msg}`);
+
+            if (nativeRetry < MAX_NATIVE_RETRIES) {
+              nativeRetry++;
+              console.log(`[HLS] Native retry ${nativeRetry}/${MAX_NATIVE_RETRIES} in 2s...`);
+              toast(`Video error (${code}), mencoba ulang (${nativeRetry}/${MAX_NATIVE_RETRIES})...`, 'info');
+              v.onerror = null;
+              v.removeAttribute('src');
+              try { v.load(); } catch (e) { }
+              setTimeout(tryNativeLoad, 2000);
+            } else {
+              clearTimeout(fallbackTimer);
+              console.error('[HLS] Native HLS failed after retries. Error code:', code);
+              toast(`Error video native HLS (code=${code}). Coba browser lain atau reload.`, 'error');
+              setOverlay(false); destroyHLS(); isLive = false; showPlaceholder();
+              document.getElementById('mainPlayBtn').innerHTML = '▶';
+            }
+          };
+
+          // Deteksi stall: timeupdate harus maju; jika tidak bergerak 8 detik → retry
+          let lastTime = -1, stallCheck = null;
+          function startStallWatch() {
+            stallCheck = setInterval(() => {
+              if (!isLive) { clearInterval(stallCheck); return; }
+              if (v.readyState >= 3 && !v.paused) {
+                if (v.currentTime === lastTime && lastTime >= 0) {
+                  console.warn('[HLS] Native HLS stalled at t=' + lastTime);
+                  clearInterval(stallCheck);
+                  if (nativeRetry < MAX_NATIVE_RETRIES) {
+                    nativeRetry++;
+                    toast(`Stream macet, mencoba ulang (${nativeRetry}/${MAX_NATIVE_RETRIES})...`, 'info');
+                    v.onerror = null;
+                    v.removeAttribute('src');
+                    try { v.load(); } catch (e) { }
+                    setTimeout(tryNativeLoad, 1500);
+                  }
+                }
+                lastTime = v.currentTime;
+              }
+            }, 8000);
+          }
+
+          v.src = bustUrl;
+          v.play()
+            .then(() => { startStallWatch(); })
+            .catch(e => {
+              if (e.name === 'NotAllowedError') {
+                v.muted = true;
+                document.getElementById('muteBtn').textContent = '🔇';
+                v.play().then(() => { startStallWatch(); }).catch(() => { });
+                toast('Autoplay diblokir — suara dimatikan', 'info');
+              } else {
+                console.warn('[HLS] Native play() rejected:', e.name, e.message);
+              }
+            });
+        }
+
+        // Delay kecil sebelum load pertama agar M3U8 sudah terisi minimal 1 segment
+        setTimeout(tryNativeLoad, 500);
+        return;
+      }
+
+      // ── Hls.js not available at all ───────────────────────────
+      if (typeof Hls === 'undefined' || !Hls.isSupported()) {
+        clearTimeout(fallbackTimer);
+        setOverlay(false); isLive = false;
+        toast('HLS.js tidak tersedia. Gunakan Chrome/Edge desktop.', 'error');
+        showBrowserWarn('HLS.js tidak berhasil dimuat. Pastikan koneksi internet aktif lalu <b>refresh halaman</b>. Atau gunakan Chrome/Edge versi terbaru.');
+        showPlaceholder();
+        document.getElementById('mainPlayBtn').innerHTML = '▶';
+        return;
+      }
+
+      // ── HLS.js ────────────────────────────────────────────────
+      console.log('[HLS] Starting HLS.js player, URL:', url);
+
+      hlsPlayer = new Hls({
+        // Live stream settings (low latency)
+        liveSyncDurationCount: 2,
+        liveMaxLatencyDurationCount: 5,
+        maxBufferLength: 6,
+        maxBackBufferLength: 8,
+        enableWorker: true,
+        lowLatencyMode: true,
+        startPosition: -1,
+        // Timeouts (ms)
+        fragLoadingTimeOut: 12000,
+        manifestLoadingTimeOut: 10000,
+        levelLoadingTimeOut: 10000,
+        // Retry
+        fragLoadingMaxRetry: 4,
+        manifestLoadingMaxRetry: 4,
+        levelLoadingMaxRetry: 4,
+        fragLoadingMaxRetryTimeout: 4000,
+        // Buffer
+        maxBufferHole: 0.5,
+        maxMaxBufferLength: 30,
+        // Fix for some cameras: don't try to align by PTS
+        nudgeMaxRetry: 5,
+        // Debug
+        debug: false,
+      });
+
+      hlsPlayer.loadSource(url);
+      hlsPlayer.attachMedia(v);
+
+      hlsPlayer.on(Hls.Events.MANIFEST_PARSED, (ev, data) => {
+        console.log('[HLS] Manifest parsed, levels:', data.levels.length);
+        v.play().catch(e => {
+          if (e.name === 'NotAllowedError') {
+            // Autoplay blocked — mute and retry
+            v.muted = true;
+            document.getElementById('muteBtn').textContent = '🔇';
+            v.play().catch(() => { });
+            toast('Autoplay diblokir browser — suara dimatikan', 'info');
+          }
+        });
+      });
+
+      hlsPlayer.on(Hls.Events.FRAG_LOADED, (ev, data) => {
+        // First fragment loaded — good sign
+        console.log('[HLS] Fragment loaded:', data.frag.sn);
+      });
+
+      hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
+        console.warn('[HLS] Error:', data.type, data.details, 'fatal:', data.fatal);
+
+        if (!data.fatal) {
+          // Non-fatal: log and continue
+          if (data.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR ||
+            data.details === Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL) {
+            console.log('[HLS] Buffer stall — nudging...');
+          }
+          return;
+        }
+
+        // Fatal errors:
+        clearTimeout(fallbackTimer);
+
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            console.log(`[HLS] Network error, retry ${retryCount}/${MAX_RETRIES}`);
+            toast(`Network error, mencoba ulang (${retryCount}/${MAX_RETRIES})...`, 'info');
+            setTimeout(() => { if (isLive && hlsPlayer) hlsPlayer.startLoad(); }, 2000);
+          } else {
+            toast('Stream gagal: koneksi terputus berulang.', 'error');
+            setOverlay(false); destroyHLS(); isLive = false; showPlaceholder();
+            document.getElementById('mainPlayBtn').innerHTML = '▶';
+          }
+          return;
+        }
+
+        if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            console.log(`[HLS] Media error (${data.details}), recover ${retryCount}/${MAX_RETRIES}`);
+            toast(`Media error (${data.details}), memulihkan...`, 'info');
+            hlsPlayer.recoverMediaError();
+          } else {
+            toast(`Stream tidak bisa dipulihkan (${data.details}). Coba mulai ulang.`, 'error');
+            setOverlay(false); destroyHLS(); isLive = false; showPlaceholder();
+            document.getElementById('mainPlayBtn').innerHTML = '▶';
+          }
+          return;
+        }
+
+        // Other fatal
+        toast(`Stream error: ${data.details}. Stop & coba lagi.`, 'error');
+        setOverlay(false); destroyHLS(); isLive = false; showPlaceholder();
+        document.getElementById('mainPlayBtn').innerHTML = '▶';
+      });
+    }
+
+    function destroyHLS() {
+      const v = document.getElementById('vp');
+      v.onerror = null;
+      v.removeEventListener('timeupdate', () => { });
+      v.removeEventListener('playing', () => { });
+      if (hlsPlayer) {
+        try { hlsPlayer.stopLoad(); hlsPlayer.detachMedia(); hlsPlayer.destroy(); } catch (e) { }
+        hlsPlayer = null;
+      }
+      v.pause();
+      v.removeAttribute('src');
+      try { v.load(); } catch (e) { }
+    }
+
+    async function stopLive() {
+      if (!isLive && !sseSource) return;
+      if (sseSource) { sseSource.close(); sseSource = null; }
+      destroyHLS();
+      fetch(`${BASE}/stop-stream?sn=${sn}&ch=${ch}`).catch(() => { });
+      document.getElementById('vp').style.display = 'none';
+      showPlaceholder();
+      document.getElementById('livePill').classList.remove('show');
+      document.getElementById('mainPlayBtn').innerHTML = '▶';
+      document.getElementById('vidInfo').textContent = 'Siap';
+      setOverlay(false); isLive = false;
+      toast('Siaran dihentikan', '');
+    }
+
+    function stopLiveSync() {
+      if (sseSource) { sseSource.close(); sseSource = null; }
+      destroyHLS();
+      fetch(`${BASE}/stop-stream?sn=${sn}&ch=${ch}`).catch(() => { });
+      document.getElementById('vp').style.display = 'none';
+      showPlaceholder();
+      document.getElementById('livePill').classList.remove('show');
+      document.getElementById('mainPlayBtn').innerHTML = '▶';
+      document.getElementById('vidInfo').textContent = 'Siap';
+      setOverlay(false); isLive = false;
+    }
+
+    function showPlaceholder(icon, msg) {
+      const ph = document.getElementById('videoPlaceholder');
+      ph.style.display = 'flex';
+      if (icon) document.querySelector('.video-placeholder-icon').textContent = icon;
+      if (msg) document.getElementById('placeholderHint').textContent = msg;
+    }
+
+    function toggleLive() { isLive ? stopLive() : startLive(); }
+
+    function switchCh(c, el) {
+      ch = c;
+      document.querySelectorAll('.channel-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      const L = ['', 'CH-1 • DEPAN', 'CH-2 • BELAKANG', 'CH-3 • KABIN'];
+      document.getElementById('videoLabel').textContent = L[c];
+      if (isLive) { stopLiveSync(); setTimeout(startLive, 1000); }
+    }
+
+    function playVOD(url) {
+      if (!url) { toast('File video tidak tersedia', 'error'); return; }
+      if (isLive) stopLive();
+      const v = document.getElementById('vp');
+      document.getElementById('videoPlaceholder').style.display = 'none';
+      v.style.display = 'block';
+      v.src = url;
+      v.play().catch(() => { });
+      document.getElementById('livePill').classList.remove('show');
+      document.getElementById('vidInfo').textContent = 'Memutar Rekaman';
+      toast('Memutar video rekaman...', 'info');
+    }
+
+    async function wakeupDevice() {
+      toast('Membangunkan kamera...', 'info');
+      const r = await api(`/lingdu-app/api/user-device/device-wakeup?imei=${imei}`);
+      toast(r?.code === 200 ? 'Kamera berhasil dibangunkan!' : 'Gagal membangunkan', r?.code === 200 ? 'success' : 'error');
+    }
+
+    function toggleMute() {
+      const v = document.getElementById('vp');
+      v.muted = !v.muted;
+      document.getElementById('muteBtn').textContent = v.muted ? '🔇' : '🔊';
+    }
+
+    function toggleFS() {
+      const w = document.getElementById('videoWrapper');
+      if (!document.fullscreenElement) w.requestFullscreen().catch(() => { });
+      else document.exitFullscreen().catch(() => { });
+    }
+
+    function snapshot() {
+      const v = document.getElementById('vp');
+      if (v.readyState < 2) { toast('Tidak ada video', 'error'); return; }
+      const c = document.createElement('canvas');
+      c.width = v.videoWidth || 1280; c.height = v.videoHeight || 720;
+      c.getContext('2d').drawImage(v, 0, 0);
+      const a = document.createElement('a');
+      a.href = c.toDataURL('image/png');
+      a.download = `azdome-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+      a.click();
+      toast('Foto disimpan!', 'success');
+    }
+
+    // ═══ AUTH ═════════════════════════════════════════════════════
+
+    async function checkAuth(silent = false) {
+      const r = await fetch(BASE + '/auth/me').catch(() => null);
+      if (!r || !r.ok) { if (!silent) toast('Sesi berakhir', 'error'); window.location.href = '/login'; return; }
+      const d = await r.json();
+      if (!d.ok) { if (!silent) toast('Sesi berakhir', 'error'); window.location.href = '/login'; return; }
+      const u = d.user;
+      document.getElementById('userLabel').textContent = u.name || u.username;
+      document.getElementById('userBadge').style.display = 'flex';
+    }
+
+    function doLogout() { window.location.href = '/auth/logout'; }
+
+    // ═══ INIT ═════════════════════════════════════════════════════
+
+    async function init() {
+      await checkAuth(true);
+
+      // Check HLS support after page load (give CDN time to load)
+      setTimeout(() => checkHLSSupport(), 2000);
+
+      toast('Memuat data...', 'info');
+      initLeafletMap();
+      await loadDevices();
+      if (sn) await Promise.all([loadGPS(), loadEvents(), loadSIM()]);
+      toast('Dashboard siap!', 'success');
+
+      setInterval(loadGPS, 30000);
+      setInterval(loadEvents, 60000);
+      setInterval(loadDevices, 120000);
+      setInterval(() => checkAuth(), 300000);
+    }
+
+    init();
+  </script>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="debug-panel" id="debugPanel"></div>
+
+</body>
+
+</html>

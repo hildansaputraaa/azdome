@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  dashboard:
+    build: .
+    container_name: azdome-dashboard
+    restart: unless-stopped
+    ports:
+      - "8899:8899"
+    environment:
+      PORT: 8899
+    volumes:
+      - ./media:/app/media
