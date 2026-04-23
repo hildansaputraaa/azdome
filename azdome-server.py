@@ -22,14 +22,21 @@ DEFAULT_THUMBNAIL = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x0
 
 # ═══ SESSION HELPERS ════════════════════════════
 
-def session_create(azdome_token, name):
-    """Buat session baru, simpan di memory."""
+def session_create(azdome_token, name, email):
+    """Buat session baru, simpan di memory. Logout session lama dengan email yang sama."""
     token = secrets.token_hex(32)
     expires = time.time() + SESSION_TTL
     with azdome_sessions_lock:
+        # Cari dan hapus session lama dengan email yang sama (Single Session Enforcement)
+        old_sessions = [k for k, v in azdome_sessions.items() if v.get('email') == email]
+        for k in old_sessions:
+            azdome_sessions.pop(k, None)
+            print(f"[AUTH] Single session enforcement: logged out old session for {email}")
+
         azdome_sessions[token] = {
             'azdome_token': azdome_token,
             'name': name,
+            'email': email,
             'expires': expires,
         }
     _session_cleanup()
@@ -627,22 +634,36 @@ def _try_fallback_force_decode(stream_url, session_id, hls_dir, m3u8, log_path, 
     return False
 
 
-def api_call(path, method="GET", body=None, timeout=15, azdome_token=None):
+def api_call(path, method="GET", body=None, timeout=15, azdome_token=None, retries=2):
     url = API_BASE + path
     token = azdome_token if azdome_token else TOKEN_AZDOME
-    req = urllib.request.Request(url, data=body, method=method)
-    req.add_header("Authorization", token)
-    req.add_header("App-Key", "AZDOME")
-    req.add_header("Content-Type", "application/json")
-    req.add_header("Accept-Encoding", "gzip")
-    req.add_header("User-Agent", "okhttp/3.14.9")
-    try:
-        resp = urllib.request.urlopen(req, timeout=timeout)
-        raw  = resp.read()
-        if resp.info().get("Content-Encoding") == "gzip": raw = gzip.decompress(raw)
-        return json.loads(raw)
-    except Exception as e:
-        print(f"[API] {path}: {e}"); return None
+    
+    for attempt in range(retries + 1):
+        req = urllib.request.Request(url, data=body, method=method)
+        req.add_header("Authorization", token)
+        req.add_header("App-Key", "AZDOME")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("Accept-Encoding", "gzip")
+        req.add_header("User-Agent", "okhttp/3.14.9")
+        
+        try:
+            resp = urllib.request.urlopen(req, timeout=timeout)
+            raw  = resp.read()
+            if resp.info().get("Content-Encoding") == "gzip": 
+                raw = gzip.decompress(raw)
+            return json.loads(raw)
+        except urllib.error.HTTPError as e:
+            if e.code == 503 and attempt < retries:
+                wait_time = (attempt + 1) * 2
+                print(f"[API] 503 detected for {path}, retrying in {wait_time}s... ({attempt+1}/{retries})")
+                time.sleep(wait_time)
+                continue
+            print(f"[API] HTTP Error {e.code} for {path}: {e.reason}")
+            return None
+        except Exception as e:
+            print(f"[API] Error for {path}: {e}")
+            return None
+    return None
 
 def wait_camera_ready(device_sn, send_event, max_wait=120, azdome_token=None):
     send_event("progress", "Menunggu kamera menyala (scan-channel polling)...")
@@ -666,10 +687,13 @@ def wait_camera_ready(device_sn, send_event, max_wait=120, azdome_token=None):
                 else:
                     msg = f"Menunggu kamera siap... ({elapsed}s)"
                     send_event("progress", msg)
+                    # Send an extra event to keep Cloudflare happy
+                    send_event("ping", "keep-alive")
                     if i % 5 == 0: print(f"[STREAM] {msg}")
             else:
                 if i % 5 == 0: print(f"[STREAM] Kamera belum merespons ({elapsed}s)")
                 send_event("progress", f"Kamera belum merespons... ({elapsed}s)")
+                send_event("ping", "keep-alive")
         except Exception as e:
             print(f"[STREAM] scan-channel error at {elapsed}s: {e}")
         time.sleep(3)
@@ -953,10 +977,16 @@ class Handler(BaseHTTPRequestHandler):
             if not sn: self._json(400,{"ok":False,"msg":"sn required"}); return
 
             self.send_response(200); self._cors()
-            self.send_header("Content-Type","text/event-stream")
-            self.send_header("Cache-Control","no-cache")
-            self.send_header("X-Accel-Buffering","no")
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache, no-transform")
+            self.send_header("Connection", "keep-alive")
+            self.send_header("X-Accel-Buffering", "no")
+            self.send_header("X-Content-Type-Options", "nosniff")
             self.end_headers()
+            
+            # Initial ping/comment to force Cloudflare to open the stream immediately
+            self.wfile.write(b": connection established\n\n")
+            self.wfile.flush()
 
             def send_event(etype, data):
                 try:
@@ -1116,7 +1146,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(401,{"ok":False,"msg":"Email atau password AZDOME salah"}); return
             user_info = azdome_data.get("user", {})
             name = user_info.get("nickname") or user_info.get("name") or email
-            token = session_create(azdome_token, name)
+            token = session_create(azdome_token, name, email)
             print(f"[AUTH] Login: {email} → session created, name={name}")
             self.send_response(200); self._cors()
             self.send_header("Content-Type","application/json")

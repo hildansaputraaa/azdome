@@ -2139,8 +2139,7 @@
           const m = L.marker([loc.lat, loc.lng], { icon: makeIcon('#6b7280', false) })
             .addTo(leafletMap)
             .on('click', () => {
-              const idx = devices.findIndex(d => (d.deviceSn || d.imei) === dsn);
-              if (idx >= 0) selectVehicle(idx, document.querySelectorAll('.vehicle-item')[idx]);
+              selectVehicle(dsn);
             });
           allMarkers.push(m);
         }
@@ -2162,11 +2161,8 @@
           const m = L.marker([loc.lat, loc.lng], { icon: icon })
             .addTo(leafletMapFull)
             .on('click', () => {
-              const idx = devices.findIndex(d => (d.deviceSn || d.imei) === dsn);
-              if (idx >= 0) {
-                selectVehicle(idx, document.querySelectorAll('.vehicle-item')[idx]);
-                closeMapModal(); // Auto close modal to show selected vehicle
-              }
+              selectVehicle(dsn);
+              closeMapModal(); // Auto close modal to show selected vehicle
             });
           allMarkersFull.push(m);
         }
@@ -2252,7 +2248,11 @@
           };
         }
       });
-      for (let i = 0; i < promises.length; i += 4) await Promise.all(promises.slice(i, i + 4));
+      // Load in small chunks with delay between chunks to avoid 503 rate limiting
+      for (let i = 0; i < promises.length; i += 2) {
+        await Promise.all(promises.slice(i, i + 2));
+        await new Promise(res => setTimeout(res, 800)); // Jedakan agar tidak 503
+      }
       rebuildAllMarkers();
       // Update status lights (online/sleep/offline) after onlineState is available
       renderDevices();
@@ -2267,7 +2267,18 @@
         el.innerHTML = '<div class="empty-state"><div style="font-size:28px;margin-bottom:6px">🚗</div><p>Belum ada kendaraan</p></div>';
         return;
       }
-      el.innerHTML = devices.map((d, i) => {
+
+      // Sort: Online (1) -> Sleep (2) -> Offline (0)
+      const sorted = [...devices].sort((a, b) => {
+        const dsnA = a.deviceSn || a.imei || '';
+        const dsnB = b.deviceSn || b.imei || '';
+        const stA = Number(a.onlineState ?? deviceLocations[dsnA]?.onlineState ?? (a.mqttState === 1 ? 1 : 0));
+        const stB = Number(b.onlineState ?? deviceLocations[dsnB]?.onlineState ?? (b.mqttState === 1 ? 1 : 0));
+        const w = (s) => (s === 1 ? 0 : s === 2 ? 1 : 2);
+        return w(stA) - w(stB);
+      });
+
+      el.innerHTML = sorted.map((d) => {
         const dsn = d.deviceSn || d.imei || '';
         const name = d.carName || d.deviceName || d.vehicleName || ('Kamera ' + dsn.slice(-6));
         const model = d.deviceModel || d.model || '--';
@@ -2279,7 +2290,7 @@
         const on = st === 1;
         const sleep = st === 2;
         const sc = on ? 'status-online' : sleep ? 'status-sleep' : 'status-offline';
-        return `<div class="vehicle-item${dsn === sn ? ' active' : ''}" onclick="selectVehicle(${i},this)">
+        return `<div class="vehicle-item${dsn === sn ? ' active' : ''}" data-dsn="${dsn}" onclick="selectVehicle('${dsn}',this)">
       <div class="vehicle-avatar">🚗</div>
       <div class="vehicle-info">
         <div class="vehicle-name">${name}</div>
@@ -2316,14 +2327,18 @@
       } finally {
         _deviceRefreshLock = false;
       }
-    }, 15000);
+    }, 30000); // Perlama interval refresh menjadi 30 detik agar tidak 503
 
-    function selectVehicle(i, el) {
-      const d = devices[i]; if (!d) return;
+    function selectVehicle(dsn, el) {
+      const d = devices.find(x => (x.deviceSn || x.imei) === dsn); if (!d) return;
       if (isLive) stopLiveSync();
-      document.querySelectorAll('.vehicle-item').forEach(x => x.classList.remove('active'));
-      el.classList.add('active');
-      sn = d.deviceSn || d.imei || sn;
+
+      // Update active class
+      document.querySelectorAll('.vehicle-item').forEach(x => {
+        x.classList.toggle('active', x.getAttribute('data-dsn') === dsn);
+      });
+
+      sn = dsn;
       imei = d.imei || d.deviceSn || imei;
       iccid = d.iccid || iccid;
       updateStats(d);
@@ -2334,7 +2349,7 @@
       if (deviceLocations[sn]?.lat) {
         lat = deviceLocations[sn].lat; lng = deviceLocations[sn].lng;
         rebuildAllMarkers();
-        leafletMap.setView([lat, lng], 16); // Auto-zoom ke kendaraan yang dipilih
+        leafletMap.setView([lat, lng], 16); 
         if (leafletMapFull) {
           rebuildAllMarkersFull();
           leafletMapFull.setView([lat, lng], 16);
