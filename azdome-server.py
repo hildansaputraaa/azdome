@@ -798,7 +798,7 @@ input:focus{border-color:#1d6fe8;box-shadow:0 0 0 3px rgba(29,111,232,.1);}
 <body>
 <div class="card">
   <div class="logo" style="flex-direction: column; gap: 8px;">
-    <img src="/media/logo_aldzama_transparan.png" alt="Aldzama" style="height: 60px; width: auto; object-fit: contain;">
+    <img src="/media/logo_aldzama_transparan.png" alt="Aldzama" style="height: 70px; width: auto; max-width: 100%; display: block; margin: 0 auto;">
     <div class="logo-text" style="text-align: center;"><p>Fleet Monitor System</p></div>
   </div>
   <div class="error" id="err"></div>
