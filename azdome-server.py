@@ -1,3 +1,4 @@
+# code by github.com/hildansaputraaa
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import urllib.request, urllib.error, json, os, gzip, socket, time, hashlib, glob
 import subprocess, shutil, threading, tempfile, secrets
@@ -766,7 +767,8 @@ def get_stream_url_sse(device_sn, channel, send_event, retries=3, azdome_token=N
 
 # ═══ LOGIN PAGE ══════════════════════════════════
 
-LOGIN_HTML = """<!DOCTYPE html>
+LOGIN_HTML = """<!-- code by github.com/hildansaputraaa -->
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -807,7 +809,7 @@ input:focus{border-color:#1d6fe8;box-shadow:0 0 0 3px rgba(29,111,232,.1);}
   <div class="form-group"><label>Password</label><input type="password" id="pw" placeholder="Password AZDOME" autocomplete="current-password"></div>
   <button class="btn" id="btn" onclick="doLogin()">Masuk</button>
   <div class="note">&#128161; Login menggunakan akun AZDOME Anda.</div>
-  <div class="footer">Aldzama Fleet Monitor &copy; 2024</div>
+  <div class="footer">Aldzama Fleet Monitor &copy; 2024 • code by <a href="https://github.com/hildansaputraaa" target="_blank" style="color:inherit;text-decoration:none;">github.com/hildansaputraaa</a></div>
 </div>
 <script>
 document.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
