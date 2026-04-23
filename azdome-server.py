@@ -771,7 +771,9 @@ LOGIN_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Aldzama - Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/png" href="/media/logo_aldzama_transparan.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;}
@@ -877,9 +879,14 @@ class Handler(BaseHTTPRequestHandler):
             self._serve_html(); return
 
         if path == "/favicon.ico":
-            self.send_response(200); self.send_header("Content-Type","image/png")
-            self.send_header("Content-Length",str(len(FAVICON))); self.end_headers()
-            self.wfile.write(FAVICON); return
+            favicon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "media", "logo_aldzama_transparan.png")
+            if os.path.exists(favicon_path):
+                self._serve_file(favicon_path, "logo_aldzama_transparan.png")
+            else:
+                self.send_response(200); self.send_header("Content-Type","image/png")
+                self.send_header("Content-Length",str(len(FAVICON))); self.end_headers()
+                self.wfile.write(FAVICON)
+            return
 
         if path.startswith("/media/"):
             self._proxy_media(path); return
