@@ -773,7 +773,7 @@ LOGIN_HTML = """<!DOCTYPE html>
 <title>Aldzama - Login</title>
 <link    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
-  <link rel="icon" type="image/png" href="/media/logo_aldzama_transparan.png">
+  <link rel="icon" type="image/svg+xml" href="/media/favicon.svg">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;}
@@ -879,16 +879,14 @@ class Handler(BaseHTTPRequestHandler):
             self._serve_html(); return
 
         if path == "/favicon.ico":
-            favicon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "media", "logo_aldzama_transparan.png")
-            if os.path.exists(favicon_path):
-                self._serve_file(favicon_path, "logo_aldzama_transparan.png")
-            else:
-                self.send_response(200); self.send_header("Content-Type","image/png")
-                self.send_header("Content-Length",str(len(FAVICON))); self.end_headers()
-                self.wfile.write(FAVICON)
-            return
+            self.send_response(302)
+            self.send_header("Location", "/media/favicon.svg")
+            self.end_headers(); return
 
         if path.startswith("/media/"):
+            local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), path.lstrip("/"))
+            if os.path.exists(local_path) and os.path.isfile(local_path):
+                self._serve_file(local_path, os.path.basename(local_path)); return
             self._proxy_media(path); return
 
         user = self._require_auth()
@@ -1178,7 +1176,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def _serve_file(self, filepath, filename):
         ext = filename.rsplit(".",1)[-1]
-        ct  = {"m3u8":"application/vnd.apple.mpegurl","ts":"video/mp2t"}.get(ext,"application/octet-stream")
+        ct  = {
+            "m3u8": "application/vnd.apple.mpegurl",
+            "ts": "video/mp2t",
+            "svg": "image/svg+xml",
+            "png": "image/png",
+            "css": "text/css"
+        }.get(ext, "application/octet-stream")
         for _ in range(20):
             if os.path.exists(filepath): break
             time.sleep(0.1)

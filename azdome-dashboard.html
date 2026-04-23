@@ -8,7 +8,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
-  <link rel="icon" type="image/png" href="/media/logo_aldzama_transparan.png">
+  <link rel="icon" type="image/svg+xml" href="/media/favicon.svg">
   <!-- HLS.js: multi-CDN fallback -->
   <script>
     window._hlsLoaded = false;
@@ -372,19 +372,29 @@
     }
 
     .status-online {
-      background: #22c55e; /* hijau */
+      background: #22c55e;
+      /* hijau */
       box-shadow: 0 0 0 3px rgba(34, 197, 94, .25);
       animation: pulse-status 2s infinite;
     }
 
     @keyframes pulse-status {
-      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45); }
-      70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+      0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+      }
+
+      70% {
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
     }
 
     .status-offline {
-      background: #9ca3af; /* abu-abu */
+      background: #9ca3af;
+      /* abu-abu */
     }
 
     .status-sleep {
@@ -1528,13 +1538,23 @@
         gap: 16px;
       }
 
-      .left-panel, .center-panel, .right-panel {
+      .left-panel,
+      .center-panel,
+      .right-panel {
         display: contents;
       }
 
-      #card-gps { order: 1; }
-      #card-camera { order: 2; }
-      #card-events { order: 3; }
+      #card-gps {
+        order: 1;
+      }
+
+      #card-camera {
+        order: 2;
+      }
+
+      #card-events {
+        order: 3;
+      }
 
       .video-wrapper {
         min-height: 220px;
@@ -1561,7 +1581,7 @@
         gap: 6px;
       }
 
-      .header-right > * {
+      .header-right>* {
         flex-shrink: 0;
       }
 
@@ -1631,7 +1651,8 @@
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="count-badge" id="vehicleCount">0</span>
-          <button class="refresh-btn" onclick="loadDevices()" style="padding:4px 10px;font-size:11px;height:auto;line-height:1;">🔄 Perbarui</button>
+          <button class="refresh-btn" onclick="loadDevices()"
+            style="padding:4px 10px;font-size:11px;height:auto;line-height:1;">🔄 Perbarui</button>
         </div>
       </div>
       <div class="card-body" style="padding: 12px;">
@@ -1695,8 +1716,10 @@
             </div>
           </div>
           <div style="margin-top:8px; display: flex; gap: 8px;">
-            <button class="map-open-btn" style="flex: 1; justify-content:center; padding:8px;" onclick="refreshGPS()">🔄 Refresh GPS</button>
-            <button class="map-open-btn" style="flex: 1; justify-content:center; padding:8px;" onclick="openMaps()">🗺 Google Maps</button>
+            <button class="map-open-btn" style="flex: 1; justify-content:center; padding:8px;" onclick="refreshGPS()">🔄
+              Refresh GPS</button>
+            <button class="map-open-btn" style="flex: 1; justify-content:center; padding:8px;" onclick="openMaps()">🗺
+              Google Maps</button>
           </div>
         </div>
       </div>
@@ -1713,7 +1736,9 @@
             <button class="channel-tab" onclick="switchCh(1,this)">📷 Depan</button>
             <button class="channel-tab" onclick="switchCh(2,this)">🔭 Belakang</button>
           </div>
-          <span id="hlsStatusBadge" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--success-light);color:var(--success); margin-right: 14px;">HLS OK</span>
+          <span id="hlsStatusBadge"
+            style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--success-light);color:var(--success); margin-right: 14px;">HLS
+            OK</span>
         </div>
 
         <div class="video-wrapper" id="videoWrapper">
@@ -1733,7 +1758,8 @@
           <div class="browser-warn" id="browserWarn">
             <span>⚠️</span>
             <div class="browser-warn-text" id="browserWarnText"></div>
-            <span class="browser-warn-close" onclick="document.getElementById('browserWarn').classList.remove('show')">✕</span>
+            <span class="browser-warn-close"
+              onclick="document.getElementById('browserWarn').classList.remove('show')">✕</span>
           </div>
           <div class="video-topbar">
             <div class="video-label" id="videoLabel">CH-3 • KABIN</div>
@@ -1776,11 +1802,13 @@
         <div style="padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface2);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div class="card-title" style="font-size: 12px;">
-              <div class="card-title-icon icon-orange" style="width: 24px; height: 24px; font-size: 12px;">📶</div>Info Kartu SIM
+              <div class="card-title-icon icon-orange" style="width: 24px; height: 24px; font-size: 12px;">📶</div>Info
+              Kartu SIM
             </div>
-            <span class="badge" id="simStatusBadge" style="background:var(--success-light);color:var(--success); font-size: 10px; padding: 2px 8px;">--</span>
+            <span class="badge" id="simStatusBadge"
+              style="background:var(--success-light);color:var(--success); font-size: 10px; padding: 2px 8px;">--</span>
           </div>
-          
+
           <div class="sim-info" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px;">
             <div class="sim-item">
               <div class="sim-label">Paket</div>
@@ -1799,7 +1827,7 @@
               <div class="sim-value" id="simUsed">--</div>
             </div>
           </div>
-          
+
           <div style="background: var(--surface); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
             <div class="progress-header" style="margin-bottom: 4px;">
               <span class="progress-label">Penggunaan Data</span>
@@ -2233,30 +2261,30 @@
       if (!devices.length) return;
       _allGPSRefreshLock = true;
       try {
-      const promises = devices.map(async d => {
-        const dsn = d.deviceSn || d.imei || '';
-        if (!dsn) return;
-        const r = await api(`/lingdu-app/api/location/last-location?deviceSn=${dsn}`);
-        if (r?.data?.latitude && r?.data?.longitude) {
-          const prev = deviceLocations[dsn] || {};
-          deviceLocations[dsn] = {
-            ...prev,
-            lat: r.data.latitude,
-            lng: r.data.longitude,
-            name: d.carName || d.deviceName || ('Kendaraan ' + dsn.slice(-6)),
-            speed: r.data.speed || 0,
-            onlineState: Number(r.data.onlineState ?? prev.onlineState ?? 0)
-          };
+        const promises = devices.map(async d => {
+          const dsn = d.deviceSn || d.imei || '';
+          if (!dsn) return;
+          const r = await api(`/lingdu-app/api/location/last-location?deviceSn=${dsn}`);
+          if (r?.data?.latitude && r?.data?.longitude) {
+            const prev = deviceLocations[dsn] || {};
+            deviceLocations[dsn] = {
+              ...prev,
+              lat: r.data.latitude,
+              lng: r.data.longitude,
+              name: d.carName || d.deviceName || ('Kendaraan ' + dsn.slice(-6)),
+              speed: r.data.speed || 0,
+              onlineState: Number(r.data.onlineState ?? prev.onlineState ?? 0)
+            };
+          }
+        });
+        // Load in small chunks with delay between chunks to avoid 503 rate limiting
+        for (let i = 0; i < promises.length; i += 2) {
+          await Promise.all(promises.slice(i, i + 2));
+          await new Promise(res => setTimeout(res, 800)); // Jedakan agar tidak 503
         }
-      });
-      // Load in small chunks with delay between chunks to avoid 503 rate limiting
-      for (let i = 0; i < promises.length; i += 2) {
-        await Promise.all(promises.slice(i, i + 2));
-        await new Promise(res => setTimeout(res, 800)); // Jedakan agar tidak 503
-      }
-      rebuildAllMarkers();
-      // Update status lights (online/sleep/offline) after onlineState is available
-      renderDevices();
+        rebuildAllMarkers();
+        // Update status lights (online/sleep/offline) after onlineState is available
+        renderDevices();
       } finally {
         _allGPSRefreshLock = false;
       }
@@ -2350,7 +2378,7 @@
       if (deviceLocations[sn]?.lat) {
         lat = deviceLocations[sn].lat; lng = deviceLocations[sn].lng;
         rebuildAllMarkers();
-        leafletMap.setView([lat, lng], 16); 
+        leafletMap.setView([lat, lng], 16);
         if (leafletMapFull) {
           rebuildAllMarkersFull();
           leafletMapFull.setView([lat, lng], 16);
