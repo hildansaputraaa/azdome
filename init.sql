@@ -42,17 +42,19 @@ INSERT IGNORE INTO azdome_config (config_key, config_value) VALUES
   ('azdome_token',            NULL),
   ('azdome_token_expires_at', NULL);
 
--- Log Aktivitas Login
-CREATE TABLE IF NOT EXISTS login_logs (
+-- Log Aktivitas
+CREATE TABLE IF NOT EXISTS activity_logs (
   id            INT AUTO_INCREMENT PRIMARY KEY,
-  user_id       INT NOT NULL,
+  user_id       INT,
   email         VARCHAR(128) NOT NULL,
   full_name     VARCHAR(128),
   role          VARCHAR(32),
+  action        VARCHAR(128) NOT NULL,
+  details       TEXT,
   ip_address    VARCHAR(64),
   user_agent    TEXT,
-  login_time    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES internal_users(id) ON DELETE CASCADE
+  created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES internal_users(id) ON DELETE SET NULL
 );
 
 -- ═══════════════════════════════════════════════════════

@@ -1139,6 +1139,7 @@
       z-index: 10;
       background: linear-gradient(180deg, rgba(0, 0, 0, .8) 0%, transparent 100%);
       padding: 12px 16px;
+      padding-top: max(12px, env(safe-area-inset-top));
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1156,14 +1157,13 @@
     }
 
     .map-modal-close {
-      width: 44px;
-      height: 44px;
+      padding: 8px 16px;
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(8px);
       border: 2px solid rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
+      border-radius: 20px;
       color: white;
-      font-size: 20px;
+      font-size: 14px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
@@ -1916,7 +1916,7 @@
         <span>📍</span>
         <span id="modalMapTitle">GPS Tracker</span>
       </div>
-      <button class="map-modal-close" onclick="closeMapModal()">✕</button>
+      <button class="map-modal-close" onclick="closeMapModal()">&#8592; Kembali</button>
     </div>
     <div id="leafletMapFull" style="flex:1;width:100%;"></div>
     <div class="gps-tracker-panel" id="gpsTrackerPanel">
@@ -2156,7 +2156,8 @@
 
     function initLeafletMapFull() {
       if (leafletMapFull) return;
-      leafletMapFull = L.map('leafletMapFull', { zoomControl: true, attributionControl: false, scrollWheelZoom: true }).setView([lat, lng], 15);
+      leafletMapFull = L.map('leafletMapFull', { zoomControl: false, attributionControl: false, scrollWheelZoom: true }).setView([lat, lng], 15);
+      L.control.zoom({ position: 'bottomright' }).addTo(leafletMapFull);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leafletMapFull);
       leafletMarkerFull = L.marker([lat, lng], { icon: makeCarIcon('Kendaraan', 0, true) }).addTo(leafletMapFull);
     }

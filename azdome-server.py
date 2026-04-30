@@ -235,16 +235,18 @@ def get_tm():
 def ensure_default_admin(database):
     try:
         database.execute("""
-            CREATE TABLE IF NOT EXISTS login_logs (
+            CREATE TABLE IF NOT EXISTS activity_logs (
               id            INT AUTO_INCREMENT PRIMARY KEY,
-              user_id       INT NOT NULL,
+              user_id       INT,
               email         VARCHAR(128) NOT NULL,
               full_name     VARCHAR(128),
               role          VARCHAR(32),
+              action        VARCHAR(128) NOT NULL,
+              details       TEXT,
               ip_address    VARCHAR(64),
               user_agent    TEXT,
-              login_time    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              FOREIGN KEY (user_id) REFERENCES internal_users(id) ON DELETE CASCADE
+              created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (user_id) REFERENCES internal_users(id) ON DELETE SET NULL
             )
         """)
         row = database.query_one("SELECT COUNT(*) as cnt FROM internal_users")
@@ -792,9 +794,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/admin/logs":
             if not self._require_auth(roles=["superuser"]): return
-            rows = get_db().query("SELECT id,email,full_name,role,ip_address,user_agent,login_time FROM login_logs ORDER BY login_time DESC LIMIT 100")
+            rows = get_db().query("SELECT id,email,full_name,role,action,details,ip_address,user_agent,created_at FROM activity_logs ORDER BY created_at DESC LIMIT 100")
             for r in rows:
-                if r.get("login_time"): r["login_time"] = str(r["login_time"])
+                if r.get("created_at"): r["created_at"] = str(r["created_at"])
             self._json(200, {"ok": True, "logs": rows}); return
 
         if path == "/get-stream":
@@ -894,11 +896,11 @@ class Handler(BaseHTTPRequestHandler):
             user_agent = self.headers.get("User-Agent", "")
             try:
                 get_db().execute(
-                    "INSERT INTO login_logs (user_id, email, full_name, role, ip_address, user_agent) VALUES (%s,%s,%s,%s,%s,%s)",
-                    (u["id"], email, u.get("full_name",""), u["role"], ip_addr, user_agent)
+                    "INSERT INTO activity_logs (user_id, email, full_name, role, action, details, ip_address, user_agent) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (u["id"], email, u.get("full_name",""), u["role"], "Login", "User login berhasil", ip_addr, user_agent)
                 )
             except Exception as e:
-                print(f"[AUTH] Failed to write login log: {e}")
+                print(f"[AUTH] Failed to write activity log: {e}")
                 
             print(f"[AUTH] Login: {email} role={u['role']}")
             self.send_response(200); self._cors()
@@ -954,6 +956,12 @@ class Handler(BaseHTTPRequestHandler):
                     "INSERT INTO internal_users (email,password_hash,role,full_name) VALUES (%s,%s,%s,%s)",
                     (u_email, ph, u_role, u_name)
                 )
+                try:
+                    get_db().execute(
+                        "INSERT INTO activity_logs (user_id, email, full_name, role, action, details, ip_address, user_agent) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                        (user.get("id"), user.get("email"), user.get("full_name"), user.get("role"), "Tambah User", f"Menambahkan user {u_email} ({u_role})", self.client_address[0], self.headers.get("User-Agent",""))
+                    )
+                except: pass
                 self._json(200,{"ok":True,"msg":f"User {u_email} berhasil dibuat","id":uid})
             except Exception as e:
                 if "Duplicate" in str(e):
@@ -987,6 +995,12 @@ class Handler(BaseHTTPRequestHandler):
             if not updates: self._json(400,{"ok":False,"msg":"Tidak ada data untuk diupdate"}); return
             params.append(uid)
             get_db().execute(f"UPDATE internal_users SET {','.join(updates)},updated_at=NOW() WHERE id=%s", params)
+            try:
+                get_db().execute(
+                    "INSERT INTO activity_logs (user_id, email, full_name, role, action, details, ip_address, user_agent) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (user.get("id"), user.get("email"), user.get("full_name"), user.get("role"), "Edit User", f"Mengubah data user ID {uid}: " + ", ".join([u.split("=")[0] for u in updates]), self.client_address[0], self.headers.get("User-Agent",""))
+                )
+            except: pass
             self._json(200,{"ok":True,"msg":"User berhasil diupdate"}); return
 
         self._json(404,{"ok":False,"msg":"Not found"})
@@ -1003,6 +1017,12 @@ class Handler(BaseHTTPRequestHandler):
             if cur and cur.get("email") == user.get("email"):
                 self._json(400,{"ok":False,"msg":"Tidak bisa menghapus akun sendiri"}); return
             get_db().execute("DELETE FROM internal_users WHERE id=%s", (uid,))
+            try:
+                get_db().execute(
+                    "INSERT INTO activity_logs (user_id, email, full_name, role, action, details, ip_address, user_agent) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (user.get("id"), user.get("email"), user.get("full_name"), user.get("role"), "Hapus User", f"Menghapus user ID {uid}", self.client_address[0], self.headers.get("User-Agent",""))
+                )
+            except: pass
             self._json(200,{"ok":True,"msg":"User dihapus"}); return
 
         self._proxy_api("DELETE")
