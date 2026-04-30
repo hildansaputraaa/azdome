@@ -6,28 +6,28 @@ services:
     container_name: azdome-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: azdome
-      MYSQL_USER: azdome
-      MYSQL_PASSWORD: azdome123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-azdome}
+      MYSQL_USER: ${DB_USER:-azdome}
+      MYSQL_PASSWORD: ${DB_PASS:-azdome123}
     volumes:
       - ./mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"
 
   dashboard:
     build: .
     container_name: azdome-dashboard
     restart: unless-stopped
     ports:
-      - "8899:8899"
+      - "${PORT:-8899}:8899"
     environment:
       PORT: 8899
       DB_HOST: db
-      DB_USER: azdome
-      DB_PASS: azdome123
-      DB_NAME: azdome
+      DB_USER: ${DB_USER:-azdome}
+      DB_PASS: ${DB_PASS:-azdome123}
+      DB_NAME: ${DB_NAME:-azdome}
     volumes:
       - ./media:/app/media
     depends_on:

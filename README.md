@@ -17,8 +17,15 @@ Dashboard web untuk memantau perangkat/kendaraan AZDOME (GPS, status online, eve
 
 Prasyarat: Docker + Docker Compose.
 
+**Konfigurasi Environment (Opsional):**
+Salin file `.env.example` menjadi `.env` lalu sesuaikan konfigurasi port dan kredensial database jika diperlukan.
 ```bash
-docker compose up --build
+cp .env.example .env
+```
+
+Jalankan container:
+```bash
+docker compose up --build -d
 ```
 
 Akses:
