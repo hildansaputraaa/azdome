@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Aldzama - Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/media/favicon.svg">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#253347;--border:#334155;
+  --accent:#3b82f6;--accent2:#0ea5e9;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+/* NAV */
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;}
+.nav-brand img{height:32px;}
+.nav-links{display:flex;gap:4px;}
+.nav-link{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;border:none;background:none;}
+.nav-link:hover,.nav-link.active{background:var(--surface2);color:var(--text);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.badge-superuser{background:rgba(168,85,247,.2);color:#a855f7;}
+.badge-viewer{background:rgba(148,163,184,.2);color:#94a3b8;}
+.btn-logout{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;background:none;border:1px solid var(--border);transition:all .15s;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+/* MAIN */
+main{flex:1;padding:28px 24px;max-width:1200px;width:100%;margin:0 auto;}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.card-title .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.icon-blue{background:rgba(59,130,246,.15);}
+.icon-green{background:rgba(34,197,94,.15);}
+.icon-purple{background:rgba(168,85,247,.15);}
+/* TOKEN STATUS */
+.token-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;}
+.token-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.token-stat-label{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.token-stat-value{font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+.stat-green{color:var(--green);}
+.stat-red{color:var(--red);}
+.stat-yellow{color:var(--yellow);}
+.token-preview{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;word-break:break-all;color:var(--text2);margin-bottom:16px;cursor:pointer;transition:border-color .15s;}
+.token-preview:hover{border-color:var(--accent);}
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+input,select{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s;width:100%;}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+select option{background:var(--surface);}
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.btn-danger:hover{background:rgba(239,68,68,.25);}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface);color:var(--text);}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px;}
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:12px 14px;border-bottom:1px solid rgba(51,65,85,.5);font-size:14px;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill-active{background:rgba(34,197,94,.15);color:var(--green);}
+.pill-inactive{background:rgba(239,68,68,.15);color:var(--red);}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;display:none;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,.5);}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:24px;}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;}
+/* ALERT */
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:16px;display:none;}
+.alert.show{display:block;}
+.alert-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);}
+.alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);}
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;width:fit-content;}
+.tab{padding:8px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text3);transition:all .15s;border:none;background:none;}
+.tab.active{background:var(--surface2);color:var(--text);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+/* SPINNER */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* COUNTDOWN */
+#countdown{font-family:'JetBrains Mono',monospace;font-size:13px;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">
+    <img src="/media/logo_aldzama_transparan.png" alt="Aldzama">
+    <span>Admin Panel</span>
+  </div>
+  <div class="nav-right">
+    <span id="userName" class="badge badge-superuser"></span>
+    <a href="/" class="btn-logout">Dashboard</a>
+    <a href="/auth/logout" class="btn-logout">Keluar</a>
+  </div>
+</nav>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('token')">🔑 Token Azdome</button>
+    <button class="tab" onclick="showTab('users')">👥 Kelola User</button>
+    <button class="tab" onclick="showTab('logs')">📋 Log Aktivitas</button>
+  </div>
+
+  <!-- TAB: TOKEN -->
+  <div id="tab-token" class="tab-panel active">
+    <div class="card">
+      <div class="card-title"><span class="icon icon-blue">🔑</span> Status Token Azdome</div>
+      <div class="token-grid">
+        <div class="token-stat">
+          <div class="token-stat-label">Status</div>
+          <div class="token-stat-value" id="statStatus">—</div>
+        </div>
+        <div class="token-stat">
+          <div class="token-stat-label">Sisa Waktu</div>
+          <div class="token-stat-value" id="statTime">—</div>
+        </div>
+        <div class="token-stat">
+          <div class="token-stat-label">Akun Azdome</div>
+          <div class="token-stat-value" id="statEmail" style="font-size:13px;font-family:inherit;word-break:break-all;">—</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="loadTokenStatus()">🔄 Refresh Status</button>
+        <button class="btn btn-ghost btn-sm" onclick="manualRefresh()">⚡ Refresh Token Manual</button>
+        <button class="btn btn-ghost btn-sm" id="btnShowToken" onclick="toggleFullToken()" style="display:none;">👁 Lihat Token</button>
+      </div>
+      <div id="fullTokenWrap" style="display:none;margin-top:16px;">
+        <div class="token-stat-label" style="margin-bottom:6px;">Token Penuh (superuser only)</div>
+        <div class="token-preview" id="fullToken" onclick="copyToken()">Klik untuk menyalin...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon icon-green">⚙️</span> Simpan Credentials Azdome</div>
+      <div class="alert alert-success" id="credSuccess"></div>
+      <div class="alert alert-error" id="credError"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Email Azdome</label>
+          <input type="email" id="azEmail" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label>Password Azdome</label>
+          <input type="password" id="azPwd" placeholder="Password akun Azdome">
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <button class="btn btn-primary" onclick="saveCredentials()" id="btnSaveCred">💾 Simpan & Fetch Token</button>
+      </div>
+      <p style="font-size:12px;color:var(--text3);margin-top:12px;">⚠️ Setelah disimpan, sistem akan otomatis refresh token sebelum expired.</p>
+    </div>
+  </div>
+
+  <!-- TAB: USERS -->
+  <div id="tab-users" class="tab-panel">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><span class="icon icon-purple">👥</span> Daftar User</span>
+        <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Tambah User</button>
+      </div>
+      <div class="alert alert-success" id="userSuccess"></div>
+      <div class="alert alert-error" id="userError"></div>
+      <div class="table-wrap">
+        <table id="userTable">
+          <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th>Login Terakhir</th><th>Aksi</th></tr></thead>
+          <tbody id="userTbody"><tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: LOGS -->
+  <div id="tab-logs" class="tab-panel">
+    <div class="card">
+      <div class="card-title"><span class="icon icon-blue">📋</span> Log Aktivitas Login</div>
+      <div class="table-wrap">
+        <table id="logTable">
+          <thead><tr><th>Waktu</th><th>Nama</th><th>Email</th><th>Role</th><th>IP Address</th><th>Perangkat</th></tr></thead>
+          <tbody id="logTbody"><tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL: ADD/EDIT USER -->
+<div class="modal-overlay" id="modalUser">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Tambah User</div>
+    <div class="alert alert-error" id="modalError"></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nama Lengkap</label>
+        <input type="text" id="mName" placeholder="Nama Lengkap">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="mEmail" placeholder="email@aldzama.com">
+      </div>
+      <div class="form-group">
+        <label>Password <span id="mPwdHint" style="font-weight:400;text-transform:none;">(isi untuk ubah)</span></label>
+        <input type="password" id="mPwd" placeholder="Password">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="mRole">
+          <option value="viewer">Viewer (lihat saja)</option>
+          <option value="superuser">Superuser (akses penuh)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" id="btnModalSave" onclick="saveUser()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUser = null;
+let editUserId = null;
+let isSuperuser = false;
+let tokenVisible = false;
+
+async function api(path, opts={}) {
+  const r = await fetch(path, {headers:{"Content-Type":"application/json"}, ...opts});
+  return r.json();
+}
+
+async function init() {
+  const me = await api("/auth/me");
+  if (me.ok) {
+    currentUser = me.user;
+    const role = me.user.role;
+    isSuperuser = role === "superuser";
+    document.getElementById("userName").textContent = me.user.name || me.user.email;
+    document.getElementById("userName").className = "badge badge-" + role;
+    if (!isSuperuser) {
+      document.querySelector('[onclick*="showTab(\'token\')"]').textContent = "🔑 Token Azdome";
+    }
+    if (isSuperuser) document.getElementById("btnShowToken").style.display = "inline-flex";
+  }
+  loadTokenStatus();
+  loadUsers();
+}
+
+// === TOKEN TAB ===
+async function loadTokenStatus() {
+  const d = await api("/admin/token-status");
+  if (!d.ok) return;
+  const s = d.status;
+  const emailEl = document.getElementById("statEmail");
+  emailEl.textContent = d.azdome_email || "Belum dikonfigurasi";
+  if (d.azdome_email) document.getElementById("azEmail").value = d.azdome_email;
+
+  if (!s.has_token) {
+    document.getElementById("statStatus").textContent = "Tidak Ada";
+    document.getElementById("statStatus").className = "token-stat-value stat-red";
+    document.getElementById("statTime").textContent = "—";
+    return;
+  }
+  if (s.is_expired) {
+    document.getElementById("statStatus").textContent = "EXPIRED ⚠️";
+    document.getElementById("statStatus").className = "token-stat-value stat-red";
+    document.getElementById("statTime").textContent = "Expired";
+  } else {
+    document.getElementById("statStatus").textContent = "Aktif ✓";
+    document.getElementById("statStatus").className = "token-stat-value stat-green";
+    startCountdown(s.seconds_left);
+  }
+}
+
+function startCountdown(secs) {
+  let s = Math.floor(secs);
+  const el = document.getElementById("statTime");
+  function fmt(v) {
+    const h = Math.floor(v/3600), m = Math.floor((v%3600)/60), sec = v%60;
+    return `${h}j ${m}m ${sec}d`;
+  }
+  el.textContent = fmt(s);
+  const iv = setInterval(() => {
+    s--;
+    if (s <= 0) { clearInterval(iv); el.textContent = "Expired"; el.className = "token-stat-value stat-red"; return; }
+    el.textContent = fmt(s);
+    el.className = s < 3600 ? "token-stat-value stat-yellow" : "token-stat-value stat-green";
+  }, 1000);
+}
+
+async function toggleFullToken() {
+  if (!isSuperuser) return;
+  tokenVisible = !tokenVisible;
+  const wrap = document.getElementById("fullTokenWrap");
+  if (tokenVisible) {
+    wrap.style.display = "block";
+    const d = await api("/admin/token-full");
+    document.getElementById("fullToken").textContent = d.token || "Token tidak tersedia";
+    document.getElementById("btnShowToken").textContent = "🙈 Sembunyikan Token";
+  } else {
+    wrap.style.display = "none";
+    document.getElementById("btnShowToken").textContent = "👁 Lihat Token";
+  }
+}
+
+function copyToken() {
+  const t = document.getElementById("fullToken").textContent;
+  navigator.clipboard.writeText(t).then(() => {
+    document.getElementById("fullToken").textContent = "✓ Disalin!";
+    setTimeout(() => loadTokenStatus(), 1500);
+  });
+}
+
+async function saveCredentials() {
+  const email = document.getElementById("azEmail").value.trim();
+  const pwd   = document.getElementById("azPwd").value;
+  const btn   = document.getElementById("btnSaveCred");
+  const suc   = document.getElementById("credSuccess");
+  const err   = document.getElementById("credError");
+  suc.classList.remove("show"); err.classList.remove("show");
+  if (!email || !pwd) { err.textContent = "Email dan password wajib diisi"; err.classList.add("show"); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Menghubungi Azdome...';
+  const d = await api("/admin/azdome/credentials", {method:"POST", body:JSON.stringify({email,password:pwd})});
+  btn.disabled = false; btn.textContent = "💾 Simpan & Fetch Token";
+  if (d.ok) {
+    suc.textContent = "✓ Token berhasil disimpan! Expires: " + (d.expires_at ? new Date(d.expires_at*1000).toLocaleString("id-ID") : "—");
+    suc.classList.add("show"); document.getElementById("azPwd").value = "";
+    loadTokenStatus();
+  } else {
+    err.textContent = d.msg || "Gagal"; err.classList.add("show");
+  }
+}
+
+async function manualRefresh() {
+  const d = await api("/admin/azdome/refresh", {method:"POST", body:"{}"});
+  if (d.ok) { alert("✓ Token berhasil di-refresh!"); loadTokenStatus(); }
+  else alert("❌ " + (d.msg || "Refresh gagal"));
+}
+
+// === USERS TAB ===
+async function loadUsers() {
+  const d = await api("/admin/users");
+  if (!d.ok) { document.getElementById("userTbody").innerHTML = `<tr><td colspan="6" style="color:var(--red);text-align:center;">Gagal memuat: ${d.msg||""}</td></tr>`; return; }
+  const tbody = document.getElementById("userTbody");
+  if (!d.users.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">Belum ada user</td></tr>`; return; }
+  tbody.innerHTML = d.users.map(u => `
+    <tr>
+      <td><strong>${u.full_name||"—"}</strong></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:13px;">${u.email}</td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td><span class="pill ${u.is_active?"pill-active":"pill-inactive"}">${u.is_active?"Aktif":"Nonaktif"}</span></td>
+      <td style="color:var(--text3);font-size:13px;">${u.last_login?new Date(u.last_login).toLocaleString("id-ID"):"Belum pernah"}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openEditUser(${JSON.stringify(JSON.stringify(u))})">Edit</button>
+        ${currentUser&&u.email!==currentUser.email?`<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.email}')">Hapus</button>`:""}
+      </td>
+    </tr>
+  `).join("");
+}
+
+function showTab(name) {
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  event.target.classList.add("active");
+  if (name === "users") loadUsers();
+  if (name === "logs") loadLogs();
+}
+
+// === LOGS TAB ===
+async function loadLogs() {
+  const d = await api("/admin/logs");
+  if (!d.ok) { document.getElementById("logTbody").innerHTML = `<tr><td colspan="6" style="color:var(--red);text-align:center;">Gagal memuat: ${d.msg||""}</td></tr>`; return; }
+  const tbody = document.getElementById("logTbody");
+  if (!d.logs.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">Belum ada log</td></tr>`; return; }
+  tbody.innerHTML = d.logs.map(L => `
+    <tr>
+      <td style="color:var(--text2);font-size:13px;">${new Date(L.login_time).toLocaleString("id-ID")}</td>
+      <td><strong>${L.full_name||"—"}</strong></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:13px;">${L.email}</td>
+      <td><span class="badge badge-${L.role}">${L.role}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);">${L.ip_address||"—"}</td>
+      <td style="font-size:12px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${L.user_agent||""}">${L.user_agent||"—"}</td>
+    </tr>
+  `).join("");
+}
+
+function openAddUser() {
+  editUserId = null;
+  document.getElementById("modalTitle").textContent = "Tambah User Baru";
+  document.getElementById("mName").value = "";
+  document.getElementById("mEmail").value = "";
+  document.getElementById("mPwd").value = "";
+  document.getElementById("mRole").value = "viewer";
+  document.getElementById("mPwdHint").style.display = "none";
+  document.getElementById("modalError").classList.remove("show");
+  document.getElementById("modalUser").classList.add("show");
+}
+
+function openEditUser(jsonStr) {
+  const u = JSON.parse(jsonStr);
+  editUserId = u.id;
+  document.getElementById("modalTitle").textContent = "Edit User";
+  document.getElementById("mName").value = u.full_name || "";
+  document.getElementById("mEmail").value = u.email;
+  document.getElementById("mEmail").disabled = true;
+  document.getElementById("mPwd").value = "";
+  document.getElementById("mRole").value = u.role;
+  document.getElementById("mPwdHint").style.display = "inline";
+  document.getElementById("modalError").classList.remove("show");
+  document.getElementById("modalUser").classList.add("show");
+}
+
+function closeModal() {
+  document.getElementById("modalUser").classList.remove("show");
+  document.getElementById("mEmail").disabled = false;
+}
+
+async function saveUser() {
+  const name  = document.getElementById("mName").value.trim();
+  const email = document.getElementById("mEmail").value.trim();
+  const pwd   = document.getElementById("mPwd").value;
+  const role  = document.getElementById("mRole").value;
+  const errEl = document.getElementById("modalError");
+  const btn   = document.getElementById("btnModalSave");
+  errEl.classList.remove("show");
+  if (!editUserId && (!email || !pwd)) { errEl.textContent = "Email dan password wajib diisi"; errEl.classList.add("show"); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  let d;
+  if (editUserId) {
+    const payload = {full_name:name, role};
+    if (pwd) payload.password = pwd;
+    d = await api(`/admin/users/${editUserId}`, {method:"PUT", body:JSON.stringify(payload)});
+  } else {
+    d = await api("/admin/users", {method:"POST", body:JSON.stringify({email,password:pwd,role,full_name:name})});
+  }
+  btn.disabled = false; btn.textContent = "Simpan";
+  if (d.ok) {
+    closeModal();
+    const suc = document.getElementById("userSuccess");
+    suc.textContent = "✓ " + (d.msg || "Berhasil"); suc.classList.add("show");
+    setTimeout(() => suc.classList.remove("show"), 3000);
+    loadUsers();
+  } else { errEl.textContent = d.msg || "Gagal"; errEl.classList.add("show"); }
+}
+
+async function deleteUser(id, email) {
+  if (!confirm(`Hapus user ${email}?`)) return;
+  const d = await api(`/admin/users/${id}`, {method:"DELETE"});
+  if (d.ok) { loadUsers(); }
+  else { const err = document.getElementById("userError"); err.textContent = d.msg||"Gagal"; err.classList.add("show"); }
+}
+
+document.getElementById("modalUser").addEventListener("click", e => { if(e.target===e.currentTarget)closeModal(); });
+document.addEventListener("keydown", e => { if(e.key==="Escape")closeModal(); });
+
+init();
+</script>
+</body>
+</html>

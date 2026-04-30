@@ -792,6 +792,42 @@
       transform: scale(1.08);
     }
 
+    .exit-fs-btn {
+      display: none;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 22px;
+      font-weight: bold;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+    }
+
+    .exit-fs-btn:hover {
+      background: rgba(220, 38, 38, 0.8);
+      border-color: white;
+      transform: scale(1.1);
+    }
+
+    .video-wrapper:fullscreen .exit-fs-btn,
+    .video-wrapper:-webkit-full-screen .exit-fs-btn {
+      display: flex;
+    }
+
+    .video-wrapper.show-controls .video-controls {
+      opacity: 1 !important;
+    }
+
     .vid-btn-primary {
       background: var(--primary);
       border-color: var(--primary);
@@ -1120,14 +1156,15 @@
     }
 
     .map-modal-close {
-      width: 36px;
-      height: 36px;
-      background: rgba(255, 255, 255, .15);
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, .2);
+      border: 2px solid rgba(255, 255, 255, 0.5);
       border-radius: 50%;
       color: white;
-      font-size: 16px;
+      font-size: 20px;
+      font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -1136,7 +1173,9 @@
     }
 
     .map-modal-close:hover {
-      background: rgba(220, 38, 38, .8);
+      background: rgba(220, 38, 38, 0.8);
+      border-color: white;
+      transform: scale(1.1);
     }
 
     .gps-tracker-panel {
@@ -1638,6 +1677,8 @@
         style="display:none;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);">
         <span>👤</span><span id="userLabel">--</span>
       </div>
+      <a id="btnAdmin" href="/admin"
+        style="display:none;padding:6px 12px;background:var(--primary-light);border:1.5px solid var(--primary);border-radius:8px;font-size:12px;font-weight:700;color:var(--primary);cursor:pointer;text-decoration:none;">Admin Panel</a>
       <button onclick="doLogout()"
         style="padding:6px 12px;background:var(--danger-light);border:1.5px solid #fca5a5;border-radius:8px;font-size:12px;font-weight:700;color:var(--danger);cursor:pointer;">Keluar</button>
     </div>
@@ -1771,10 +1812,12 @@
           <div class="video-controls" id="videoControls">
             <button class="vid-btn vid-btn-primary" id="mainPlayBtn" onclick="toggleLive()">▶</button>
             <button class="vid-btn" onclick="toggleMute()" id="muteBtn">🔇</button>
-            <button class="vid-btn" onclick="toggleFS()">⛶</button>
+            <button class="vid-btn" id="fsBtn" onclick="toggleFS()">⛶</button>
             <button class="vid-btn" onclick="snapshot()">📷</button>
             <span class="vid-info" id="vidInfo">Siap</span>
           </div>
+          <!-- Dedicated Exit Fullscreen Button for Mobile -->
+          <button class="exit-fs-btn" onclick="toggleFS()" title="Keluar Layar Penuh">✖</button>
         </div>
 
         <!-- CAMERA ACTIONS BAR removed: redundant with .video-controls -->
@@ -2878,8 +2921,26 @@
 
     function toggleFS() {
       const w = document.getElementById('videoWrapper');
-      if (!document.fullscreenElement) w.requestFullscreen().catch(() => { });
-      else document.exitFullscreen().catch(() => { });
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (w.requestFullscreen) w.requestFullscreen().catch(() => { });
+        else if (w.webkitRequestFullscreen) w.webkitRequestFullscreen().catch(() => { });
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => { });
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen().catch(() => { });
+      }
+    }
+
+    // Ubah icon saat masuk fullscreen
+    document.addEventListener('fullscreenchange', updateFSIcon);
+    document.addEventListener('webkitfullscreenchange', updateFSIcon);
+
+    function updateFSIcon() {
+      const btn = document.getElementById('fsBtn');
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        btn.innerHTML = '✖'; // Icon close
+      } else {
+        btn.innerHTML = '⛶'; // Icon expand
+      }
     }
 
     function snapshot() {
@@ -2905,6 +2966,9 @@
       const u = d.user;
       document.getElementById('userLabel').textContent = u.name || u.username;
       document.getElementById('userBadge').style.display = 'flex';
+      if (u.role === 'superuser') {
+        document.getElementById('btnAdmin').style.display = 'inline-block';
+      }
     }
 
     function doLogout() { window.location.href = '/auth/logout'; }
@@ -2916,6 +2980,19 @@
 
       // Check HLS support after page load (give CDN time to load)
       setTimeout(() => checkHLSSupport(), 2000);
+
+      // Listener sentuh untuk memunculkan kontrol di mobile
+      const vw = document.getElementById('videoWrapper');
+      vw.addEventListener('click', (e) => {
+        // Jangan toggle jika yang diklik adalah tombol
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+        vw.classList.toggle('show-controls');
+        // Sembunyikan otomatis setelah 3 detik
+        if (vw.classList.contains('show-controls')) {
+          clearTimeout(vw.controlTimer);
+          vw.controlTimer = setTimeout(() => vw.classList.remove('show-controls'), 3500);
+        }
+      });
 
       toast('Memuat data...', 'info');
       initLeafletMap();

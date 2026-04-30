@@ -1,5 +1,21 @@
 version: '3.8'
+
 services:
+  db:
+    image: mysql:8.0
+    container_name: azdome-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: azdome
+      MYSQL_USER: azdome
+      MYSQL_PASSWORD: azdome123
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+
   dashboard:
     build: .
     container_name: azdome-dashboard
@@ -8,5 +24,11 @@ services:
       - "8899:8899"
     environment:
       PORT: 8899
+      DB_HOST: db
+      DB_USER: azdome
+      DB_PASS: azdome123
+      DB_NAME: azdome
     volumes:
       - ./media:/app/media
+    depends_on:
+      - db

@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Database
+mysql_data/
+
+# Media / Uploads (Opsional, tergantung kebutuhan)
+# media/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
