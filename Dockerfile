@@ -1,6 +1,6 @@
-﻿FROM python:3.11-slim
+FROM python:3.11-slim
 RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir mysql-connector-python
+RUN pip install --no-cache-dir mysql-connector-python python-dotenv
 WORKDIR /app
 COPY azdome-server.py .
 COPY azdome-dashboard.html .

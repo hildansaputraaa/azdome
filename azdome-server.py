@@ -3,6 +3,10 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import urllib.request, urllib.error, json, os, gzip, socket, time, hashlib, glob
 import subprocess, shutil, threading, tempfile, secrets, base64
 from urllib.parse import urlparse, parse_qs
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # === DB CONFIG ===
 DB_HOST = os.environ.get("DB_HOST", "mysql")
@@ -254,7 +258,7 @@ def ensure_default_admin(database):
             ph = hash_password("Admin@1234")
             database.execute(
                 "INSERT INTO internal_users (email, password_hash, role, full_name) VALUES (%s,%s,%s,%s)",
-                ("admin@aldzama.com", ph, "superuser", "Administrator")
+                ("admin@aldzama.com", ph, "admin", "Administrator")
             )
             print("[AUTH] Default admin created: admin@aldzama.com / Admin@1234")
     except Exception as e:
@@ -657,7 +661,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#
 <div class="card">
   <div class="icon">&#128274;</div>
   <div class="title">Akses Ditolak</div>
-  <div class="desc">Anda tidak memiliki izin (superuser) untuk mengakses halaman ini.</div>
+  <div class="desc">Anda tidak memiliki izin (admin) untuk mengakses halaman ini.</div>
   <a href="/" class="btn">Kembali ke Dashboard</a>
 </div>
 </body></html>"""
@@ -717,7 +721,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/admin":
             user = self._require_auth()
             if not user: return
-            if user.get("role") != "superuser":
+            if user.get("role") != "admin":
                 self.send_response(403)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(FORBIDDEN_HTML)))
@@ -775,17 +779,17 @@ class Handler(BaseHTTPRequestHandler):
 
         # === ADMIN API ===
         if path == "/admin/token-status":
-            if not self._require_auth(roles=["superuser"]): return
+            if not self._require_auth(roles=["admin"]): return
             status = get_tm().get_status()
             self._json(200, {"ok": True, "status": status, "azdome_email": get_db().get_config("azdome_email") or ""}); return
 
         if path == "/admin/token-full":
-            u2 = self._require_auth(roles=["superuser"])
+            u2 = self._require_auth(roles=["admin"])
             if not u2: return
             self._json(200, {"ok": True, "token": get_tm().get_full_token() or ""}); return
 
         if path == "/admin/users":
-            if not self._require_auth(roles=["superuser"]): return
+            if not self._require_auth(roles=["admin"]): return
             rows = get_db().query("SELECT id,email,role,full_name,is_active,last_login,created_at FROM internal_users ORDER BY created_at")
             for r in rows:
                 if r.get("last_login"): r["last_login"] = str(r["last_login"])
@@ -793,7 +797,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "users": rows}); return
 
         if path == "/admin/logs":
-            if not self._require_auth(roles=["superuser"]): return
+            if not self._require_auth(roles=["admin"]): return
             rows = get_db().query("SELECT id,email,full_name,role,action,details,ip_address,user_agent,created_at FROM activity_logs ORDER BY created_at DESC LIMIT 100")
             for r in rows:
                 if r.get("created_at"): r["created_at"] = str(r["created_at"])
@@ -914,7 +918,7 @@ class Handler(BaseHTTPRequestHandler):
         if not user: return
 
         if path == "/admin/azdome/credentials":
-            if user.get("role") != "superuser":
+            if user.get("role") != "admin":
                 self._json(403,{"ok":False,"msg":"Akses ditolak"}); return
             az_email = body.get("email","").strip()
             az_pwd   = body.get("password","")
@@ -930,7 +934,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200,{"ok":True,"msg":"Token Azdome berhasil disimpan","expires_at":exp}); return
 
         if path == "/admin/azdome/refresh":
-            if user.get("role") != "superuser":
+            if user.get("role") != "admin":
                 self._json(403,{"ok":False,"msg":"Akses ditolak"}); return
             ok = get_tm()._do_refresh()
             if ok:
@@ -940,7 +944,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if path == "/admin/users":
-            if user.get("role") != "superuser":
+            if user.get("role") != "admin":
                 self._json(403,{"ok":False,"msg":"Akses ditolak"}); return
             u_email = body.get("email","").strip()
             u_pwd   = body.get("password","")
@@ -948,7 +952,7 @@ class Handler(BaseHTTPRequestHandler):
             u_name  = body.get("full_name","").strip()
             if not u_email or not u_pwd:
                 self._json(400,{"ok":False,"msg":"Email dan password wajib diisi"}); return
-            if u_role not in ["superuser","viewer"]:
+            if u_role not in ["admin","viewer"]:
                 self._json(400,{"ok":False,"msg":"Role tidak valid"}); return
             try:
                 ph = hash_password(u_pwd)
@@ -974,19 +978,19 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         p = urlparse(self.path); path = p.path
-        user = self._require_auth(roles=["superuser","admin"])
+        user = self._require_auth(roles=["admin"])
         if not user: return
         n = int(self.headers.get("Content-Length",0))
         body = json.loads(self.rfile.read(n)) if n else {}
 
         if path.startswith("/admin/users/"):
             uid = path.split("/")[-1]
-            user = self._require_auth(roles=["superuser"])
+            user = self._require_auth(roles=["admin"])
             if not user: return
             updates = []; params = []
             if "full_name" in body: updates.append("full_name=%s"); params.append(body["full_name"])
             if "role" in body:
-                if body["role"] not in ["superuser","viewer"]:
+                if body["role"] not in ["admin","viewer"]:
                     self._json(400,{"ok":False,"msg":"Role tidak valid"}); return
                 updates.append("role=%s"); params.append(body["role"])
             if "is_active" in body: updates.append("is_active=%s"); params.append(1 if body["is_active"] else 0)
@@ -1007,7 +1011,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         p = urlparse(self.path); path = p.path
-        user = self._require_auth(roles=["superuser","admin"])
+        user = self._require_auth(roles=["admin"])
         if not user: return
 
         if path.startswith("/admin/users/"):

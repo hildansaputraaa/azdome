@@ -34,7 +34,7 @@ Akses:
 -- AKUN DEFAULT (dibuat otomatis oleh server saat startup)
 --   Email    : admin@aldzama.com
 --   Password : Admin@1234
---   Role     : superuser
+--   Role     : admin
 -- SEGERA GANTI PASSWORD SETELAH LOGIN PERTAMA!
 
 

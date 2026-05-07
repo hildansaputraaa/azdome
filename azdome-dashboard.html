@@ -1122,78 +1122,81 @@
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 9000;
+      z-index: 100000;
       background: #000;
       flex-direction: column;
+      overflow: hidden;
     }
 
     .map-modal.open {
       display: flex;
     }
 
-    .map-modal-header {
+    .map-modal-header, .map-modal-close { display: none !important; }
+
+    .gps-tracker-panel {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 10;
-      background: linear-gradient(180deg, rgba(0, 0, 0, .8) 0%, transparent 100%);
-      padding: 12px 16px;
-      padding-top: max(12px, env(safe-area-inset-top));
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100005;
+      background: rgba(15, 23, 42, .9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, .15);
+      border-radius: 24px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      color: white;
     }
 
-    .map-modal-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 700;
+    .btn-exit-map {
+      margin-top: 16px;
+      width: 100%;
+      padding: 14px;
+      background: var(--danger);
       color: white;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, .5);
-    }
-
-    .map-modal-close {
-      padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(255, 255, 255, 0.5);
-      border-radius: 20px;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
+      border: none;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 15px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all .15s;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      transition: all 0.2s;
     }
 
-    .map-modal-close:hover {
-      background: rgba(220, 38, 38, 0.8);
-      border-color: white;
-      transform: scale(1.1);
+    .btn-exit-map:hover {
+      background: #b91c1c;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
     }
 
-    .gps-tracker-panel {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 500;
-      background: rgba(15, 23, 42, .88);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, .12);
-      border-radius: 16px;
-      padding: 14px 20px;
-      min-width: 320px;
-      max-width: 480px;
-      width: 90%;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, .5);
-      color: white;
+    /* Custom style for Leaflet Zoom Controls */
+    .leaflet-control-zoom {
+      border: none !important;
+      border-radius: 12px !important;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3) !important;
+      margin-bottom: 280px !important; /* Biar tidak tertutup panel bawah */
+    }
+    .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+      width: 44px !important;
+      height: 44px !important;
+      line-height: 44px !important;
+      font-size: 22px !important;
+      font-weight: bold !important;
+      background-color: white !important;
+      color: var(--text) !important;
+      transition: all 0.2s;
+    }
+    .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover {
+      background-color: var(--primary-light) !important;
+      color: var(--primary) !important;
     }
 
     .gps-tracker-header {
@@ -1911,13 +1914,6 @@
 
   <!-- MAP FULLSCREEN MODAL -->
   <div class="map-modal" id="mapModal">
-    <div class="map-modal-header">
-      <div class="map-modal-title">
-        <span>📍</span>
-        <span id="modalMapTitle">GPS Tracker</span>
-      </div>
-      <button class="map-modal-close" onclick="closeMapModal()">&#8592; Kembali</button>
-    </div>
     <div id="leafletMapFull" style="flex:1;width:100%;"></div>
     <div class="gps-tracker-panel" id="gpsTrackerPanel">
       <div class="gps-tracker-header">
@@ -1958,6 +1954,9 @@
           <span>⚙️</span><span>--</span>
         </div>
       </div>
+      <button class="btn-exit-map" onclick="closeMapModal()">
+        <span>✕</span> Tutup Peta
+      </button>
     </div>
   </div>
 
@@ -2967,7 +2966,7 @@
       const u = d.user;
       document.getElementById('userLabel').textContent = u.name || u.username;
       document.getElementById('userBadge').style.display = 'flex';
-      if (u.role === 'superuser') {
+      if (u.role === 'admin') {
         document.getElementById('btnAdmin').style.display = 'inline-block';
       }
     }

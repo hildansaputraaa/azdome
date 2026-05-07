@@ -4,12 +4,12 @@
 -- ═══════════════════════════════════════════════════════
 
 -- Tabel user internal perusahaan
--- Role: superuser > viewer
+-- Role: admin > viewer
 CREATE TABLE IF NOT EXISTS internal_users (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   email         VARCHAR(128) NOT NULL UNIQUE,
   password_hash VARCHAR(512) NOT NULL,   -- format: salt:pbkdf2_sha256_hex
-  role          ENUM('superuser','viewer') NOT NULL DEFAULT 'viewer',
+  role          ENUM('admin','viewer') NOT NULL DEFAULT 'viewer',
   full_name     VARCHAR(128),
   is_active     TINYINT(1) NOT NULL DEFAULT 1,
   last_login    DATETIME NULL,
@@ -61,6 +61,6 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 -- AKUN DEFAULT (dibuat otomatis oleh server saat startup)
 --   Email    : admin@aldzama.com
 --   Password : Admin@1234
---   Role     : superuser
+--   Role     : admin
 -- SEGERA GANTI PASSWORD SETELAH LOGIN PERTAMA!
 -- ═══════════════════════════════════════════════════════

@@ -22,7 +22,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 .nav-link:hover,.nav-link.active{background:var(--surface2);color:var(--text);}
 .nav-right{display:flex;align-items:center;gap:12px;}
 .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
-.badge-superuser{background:rgba(168,85,247,.2);color:#a855f7;}
+.badge-admin{background:rgba(168,85,247,.2);color:#a855f7;}
 .badge-viewer{background:rgba(148,163,184,.2);color:#94a3b8;}
 .btn-logout{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;background:none;border:1px solid var(--border);transition:all .15s;}
 .btn-logout:hover{border-color:var(--red);color:var(--red);}
@@ -94,6 +94,23 @@ tr:hover td{background:rgba(255,255,255,.02);}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* COUNTDOWN */
 #countdown{font-family:'JetBrains Mono',monospace;font-size:13px;}
+
+@media (max-width: 768px) {
+  nav { padding: 0 16px; height: auto; min-height: 60px; flex-direction: column; gap: 12px; padding-bottom: 12px; }
+  .nav-brand { padding-top: 12px; }
+  .nav-right { width: 100%; justify-content: center; }
+  main { padding: 16px 12px; }
+  .tabs { width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 8px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  .btn { width: 100%; justify-content: center; }
+  .token-grid { grid-template-columns: 1fr; }
+  .nav-link { font-size: 12px; padding: 6px 10px; }
+  .modal { padding: 20px; width: 95%; margin: 10px; max-height: 90vh; overflow-y: auto; }
+  table th, table td { padding: 10px 8px; font-size: 12px; }
+  .badge { font-size: 10px; }
+  .nav-links { width: 100%; justify-content: center; flex-wrap: wrap; }
+}
 </style>
 </head>
 <body>
@@ -103,7 +120,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <span>Admin Panel</span>
   </div>
   <div class="nav-right">
-    <span id="userName" class="badge badge-superuser"></span>
+    <span id="userName" class="badge badge-admin"></span>
     <a href="/" class="btn-logout">Dashboard</a>
     <a href="/auth/logout" class="btn-logout">Keluar</a>
   </div>
@@ -140,7 +157,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
         <button class="btn btn-ghost btn-sm" id="btnShowToken" onclick="toggleFullToken()" style="display:none;">👁 Lihat Token</button>
       </div>
       <div id="fullTokenWrap" style="display:none;margin-top:16px;">
-        <div class="token-stat-label" style="margin-bottom:6px;">Token Penuh (superuser only)</div>
+        <div class="token-stat-label" style="margin-bottom:6px;">Token Penuh (admin only)</div>
         <div class="token-preview" id="fullToken" onclick="copyToken()">Klik untuk menyalin...</div>
       </div>
     </div>
@@ -220,7 +237,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
         <label>Role</label>
         <select id="mRole">
           <option value="viewer">Viewer (lihat saja)</option>
-          <option value="superuser">Superuser (akses penuh)</option>
+          <option value="admin">Admin (akses penuh)</option>
         </select>
       </div>
     </div>
@@ -234,7 +251,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
 <script>
 let currentUser = null;
 let editUserId = null;
-let isSuperuser = false;
+let isAdmin = false;
 let tokenVisible = false;
 
 async function api(path, opts={}) {
@@ -247,13 +264,13 @@ async function init() {
   if (me.ok) {
     currentUser = me.user;
     const role = me.user.role;
-    isSuperuser = role === "superuser";
+    isAdmin = role === "admin";
     document.getElementById("userName").textContent = me.user.name || me.user.email;
     document.getElementById("userName").className = "badge badge-" + role;
-    if (!isSuperuser) {
+    if (!isAdmin) {
       document.querySelector('[onclick*="showTab(\'token\')"]').textContent = "🔑 Token Azdome";
     }
-    if (isSuperuser) document.getElementById("btnShowToken").style.display = "inline-flex";
+    if (isAdmin) document.getElementById("btnShowToken").style.display = "inline-flex";
   }
   loadTokenStatus();
   loadUsers();
@@ -302,7 +319,7 @@ function startCountdown(secs) {
 }
 
 async function toggleFullToken() {
-  if (!isSuperuser) return;
+  if (!isAdmin) return;
   tokenVisible = !tokenVisible;
   const wrap = document.getElementById("fullTokenWrap");
   if (tokenVisible) {
